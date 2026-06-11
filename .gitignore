@@ -1,0 +1,5 @@
+# Configuración local con credenciales (no subir a GitHub)
+js/supabase-config.js
+
+# Sistema
+.DS_Store

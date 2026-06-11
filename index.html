@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mepiache | Inventario</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="login-page">
+
+  <div class="login-card">
+    <div class="logo">Mepiache</div>
+    <div class="subtitulo">Inventario</div>
+
+    <form id="form-login">
+      <div class="form-row">
+        <label for="usuario">Usuario</label>
+        <input type="text" id="usuario" name="usuario" placeholder="admin o empleado" required>
+      </div>
+      <div class="form-row">
+        <label for="clave">Contraseña</label>
+        <input type="password" id="clave" name="clave" placeholder="••••••••" required>
+      </div>
+      <p class="login-error" id="login-error">Usuario o contraseña incorrectos.</p>
+      <button type="submit">Ingresar</button>
+    </form>
+
+    <div class="nota-mock">
+      <strong>Modo demo:</strong> usa <code>admin / admin</code> o <code>empleado / empleado</code>.
+      Esto es un login simulado mientras se conecta Supabase Auth.
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>
