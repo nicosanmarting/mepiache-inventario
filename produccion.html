@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Mepiache | Producción</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div id="app-layout">
+    <main>
+
+      <a href="inicio.html" class="volver">&larr; Inicio</a>
+
+      <div class="panel-titulo">
+        <h2>Registrar producción</h2>
+      </div>
+
+      <div class="form-card">
+        <form id="form-movimiento">
+          <div class="form-row">
+            <label for="mov-categoria">Categoría / formato</label>
+            <select id="mov-categoria" required></select>
+          </div>
+          <div class="form-row">
+            <label for="mov-producto">Sabor</label>
+            <select id="mov-producto" required></select>
+          </div>
+          <div class="form-row dos-columnas">
+            <div>
+              <label for="mov-cantidad">Cantidad producida</label>
+              <input type="number" id="mov-cantidad" min="1" required>
+            </div>
+            <div>
+              <label for="mov-fecha">Fecha</label>
+              <input type="date" id="mov-fecha" required>
+            </div>
+          </div>
+          <div class="form-row" id="mov-motivo-row" style="display: none;">
+            <label for="mov-motivo">Motivo</label>
+            <select id="mov-motivo"></select>
+          </div>
+          <div class="form-row">
+            <label for="mov-nota">Nota (opcional)</label>
+            <input type="text" id="mov-nota" placeholder="Ej: lote especial, turno tarde...">
+          </div>
+          <button type="submit" id="mov-submit">Registrar producción</button>
+          <div class="form-mensaje" id="mov-mensaje"></div>
+        </form>
+      </div>
+
+      <div id="mov-stock-actual" style="margin-top: 18px;"></div>
+
+      <div class="panel-titulo" style="margin-top: 28px;">
+        <h2>Últimas producciones</h2>
+      </div>
+      <div class="tabla-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Sabor</th>
+              <th>Categoría / formato</th>
+              <th class="numero">Cantidad</th>
+              <th>Nota</th>
+            </tr>
+          </thead>
+          <tbody id="mov-tabla-body">
+            <!-- generado por JS -->
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+  <footer>
+    Sistema de inventario interno · Mepiache
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/movimiento.js"></script>
+  <script src="js/produccion.js"></script>
+</body>
+</html>

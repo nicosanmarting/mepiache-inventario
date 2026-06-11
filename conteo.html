@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Mepiache | Nuevo conteo</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div id="app-layout">
+    <main>
+
+      <a href="inicio.html" class="volver">&larr; Inicio</a>
+
+      <div class="panel-titulo">
+        <h2>Nuevo conteo</h2>
+      </div>
+
+      <!-- ========== PASO 1: elegir categoría/formato ========== -->
+      <div id="paso-categoria">
+        <p style="margin-bottom: 14px;">Selecciona la categoría / formato a contar:</p>
+        <div class="categoria-grid" id="categoria-grid">
+          <!-- generado por JS -->
+        </div>
+      </div>
+
+      <!-- ========== PASO 2: tabla de conteo ========== -->
+      <div id="paso-detalle" style="display: none;">
+        <div class="panel-titulo">
+          <div>
+            <h2 id="conteo-titulo">Conteo</h2>
+            <div id="conteo-meta" style="font-size: 13px; color: #8a7a5c; margin-top: 4px;"></div>
+          </div>
+          <a href="conteo.html" class="btn secundario">Otro conteo</a>
+        </div>
+
+        <div id="conteo-resumen" style="display: none; margin-bottom: 18px;"></div>
+
+        <div class="tabla-wrapper">
+          <table class="tabla-conteo">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Sabor</th>
+                <th class="numero">Stock sistema</th>
+                <th class="numero">Stock contado</th>
+                <th class="numero">Diferencia</th>
+                <th>Observación</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-conteo-body">
+              <!-- generado por JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div id="conteo-acciones" style="margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap;">
+          <button type="button" id="btn-guardar-borrador" class="secundario">Guardar borrador</button>
+          <button type="button" id="btn-finalizar">Finalizar conteo</button>
+        </div>
+        <div class="form-mensaje" id="conteo-mensaje"></div>
+      </div>
+
+    </main>
+  </div>
+
+  <footer>
+    Sistema de inventario interno · Mepiache
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/conteo.js"></script>
+</body>
+</html>

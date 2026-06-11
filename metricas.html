@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Mepiache | Métricas</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div id="app-layout">
+    <main>
+
+      <a href="inicio.html" class="volver">&larr; Inicio</a>
+
+      <div class="panel-titulo">
+        <h2>Métricas</h2>
+        <button class="secundario" id="btn-exportar-excel">Exportar a Excel</button>
+      </div>
+
+      <div class="resumen-cards" id="metricas-cards">
+        <!-- generado por JS -->
+      </div>
+
+      <div class="panel-titulo" style="margin-top: 28px;">
+        <h2>Producción vs. ventas/salidas por mes</h2>
+      </div>
+      <div class="grafico-wrapper">
+        <canvas id="grafico-prod-vs-ventas"></canvas>
+      </div>
+
+      <div class="panel-titulo" style="margin-top: 28px;">
+        <h2>Stock actual por categoría / formato</h2>
+      </div>
+      <div class="grafico-wrapper">
+        <canvas id="grafico-stock-categoria"></canvas>
+      </div>
+
+      <div class="panel-titulo" style="margin-top: 28px;">
+        <h2>Salidas del mes por categoría / formato</h2>
+      </div>
+      <div class="grafico-wrapper">
+        <canvas id="grafico-salidas-categoria"></canvas>
+      </div>
+
+      <div class="panel-titulo" style="margin-top: 28px;">
+        <h2>Mermas del mes por motivo</h2>
+      </div>
+      <div class="grafico-wrapper">
+        <canvas id="grafico-mermas-motivo"></canvas>
+      </div>
+
+      <div class="panel-titulo" style="margin-top: 28px;">
+        <h2>Top 5 sabores más vendidos (últimos 6 meses)</h2>
+      </div>
+      <div class="tabla-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Sabor</th>
+              <th>Categoría / formato</th>
+              <th class="numero">Cantidad vendida</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-ranking-body">
+            <!-- generado por JS -->
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+  <footer>
+    Sistema de inventario interno · Mepiache
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/metricas.js"></script>
+</body>
+</html>

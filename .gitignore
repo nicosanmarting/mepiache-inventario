@@ -1,2 +1,7 @@
 # Sistema
 .DS_Store
+.~lock.*#
+
+# Documentos de trabajo (no son parte de la app)
+*.xlsx
+*.docx

@@ -7,10 +7,10 @@
    =========================== */
 
 (async () => {
-  // Si ya hay sesión activa, ir directo al dashboard
+  // Si ya hay sesión activa, ir directo a Inicio
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) {
-    window.location.href = 'dashboard.html';
+    window.location.href = 'inicio.html';
   }
 })();
 
@@ -41,6 +41,6 @@ if (formLogin) {
       return;
     }
 
-    window.location.href = 'dashboard.html';
+    window.location.href = 'inicio.html';
   });
 }

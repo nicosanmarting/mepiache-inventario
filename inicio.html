@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Mepiache | Inicio</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div id="app-layout">
+    <main>
+
+      <div class="panel-titulo">
+        <h2>Inicio</h2>
+      </div>
+
+      <div class="acciones-grid">
+        <a href="conteo.html" class="btn-grande acento"><span class="icono">📋</span>Nuevo conteo</a>
+        <a href="produccion.html" class="btn-grande"><span class="icono">🏭</span>Registrar producción</a>
+        <a href="venta.html" class="btn-grande"><span class="icono">🚚</span>Venta / salida</a>
+        <a href="merma.html" class="btn-grande" id="btn-merma"><span class="icono">⚠️</span>Registrar merma</a>
+        <a href="stock.html" class="btn-grande"><span class="icono">📦</span>Ver stock actual</a>
+        <a href="metricas.html" class="btn-grande" id="btn-metricas"><span class="icono">📊</span>Ver métricas</a>
+      </div>
+
+      <div class="panel-titulo">
+        <h2>Resumen de stock</h2>
+      </div>
+      <div class="resumen-cards" id="resumen-cards">
+        <!-- generado por JS -->
+      </div>
+
+      <div class="panel-titulo" style="margin-top: 28px;">
+        <h2>Último conteo</h2>
+      </div>
+      <div id="ultimo-conteo">
+        <!-- generado por JS -->
+      </div>
+
+      <div class="panel-titulo" style="margin-top: 28px;">
+        <h2>Últimos movimientos</h2>
+      </div>
+      <div class="tabla-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Producto</th>
+              <th>Tipo</th>
+              <th class="numero">Cantidad</th>
+              <th>Motivo</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-movimientos-body">
+            <!-- generado por JS -->
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+  <footer>
+    Sistema de inventario interno · Mepiache
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/inicio.js"></script>
+</body>
+</html>

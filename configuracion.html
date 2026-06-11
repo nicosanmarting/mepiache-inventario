@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Mepiache | Configuración / productos</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div id="app-layout">
+    <main>
+
+      <a href="inicio.html" class="volver">&larr; Inicio</a>
+
+      <div class="panel-titulo">
+        <h2>Configuración / productos</h2>
+        <button id="btn-nuevo-producto">+ Nuevo producto</button>
+      </div>
+
+      <div class="form-card form-card-toggle" id="form-nuevo-producto" style="display: none; max-width: 100%;">
+        <h3 style="margin-top: 0;">Nuevo producto</h3>
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="np-codigo">Código</label>
+            <input type="text" id="np-codigo">
+          </div>
+          <div>
+            <label for="np-sabor">Sabor / nombre</label>
+            <input type="text" id="np-sabor">
+          </div>
+        </div>
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="np-categoria">Categoría / formato</label>
+            <select id="np-categoria"></select>
+          </div>
+          <div>
+            <label for="np-linea">Línea</label>
+            <input type="text" id="np-linea" placeholder="Ej: Helados">
+          </div>
+        </div>
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="np-unidad-conteo">Unidad de conteo</label>
+            <input type="text" id="np-unidad-conteo" value="unidades">
+          </div>
+          <div>
+            <label for="np-contenido">Contenido</label>
+            <input type="number" step="any" id="np-contenido">
+          </div>
+          <div>
+            <label for="np-unidad-contenido">Unidad contenido</label>
+            <input type="text" id="np-unidad-contenido" placeholder="Ej: L, kg, un">
+          </div>
+        </div>
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="np-stock-actual">Stock inicial</label>
+            <input type="number" step="any" id="np-stock-actual" value="0">
+          </div>
+          <div>
+            <label for="np-stock-minimo">Stock mínimo</label>
+            <input type="number" step="any" id="np-stock-minimo" value="0">
+          </div>
+          <div>
+            <label for="np-orden">Orden</label>
+            <input type="number" id="np-orden">
+          </div>
+        </div>
+        <div class="form-row" style="display: flex; gap: 10px;">
+          <button id="btn-crear-producto">Crear producto</button>
+          <button class="secundario" id="btn-cancelar-nuevo">Cancelar</button>
+        </div>
+        <div class="form-mensaje" id="np-mensaje"></div>
+      </div>
+
+      <div class="filtros">
+        <select id="filtro-categoria">
+          <option value="">Todas las categorías / formatos</option>
+        </select>
+        <input type="text" id="filtro-sabor" placeholder="Buscar sabor o código...">
+        <div class="form-row checkbox" style="margin-bottom: 0;">
+          <input type="checkbox" id="filtro-inactivos">
+          <label for="filtro-inactivos">Mostrar inactivos</label>
+        </div>
+      </div>
+
+      <div class="form-mensaje" id="config-mensaje"></div>
+
+      <div class="tabla-wrapper">
+        <table class="tabla-config">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Sabor</th>
+              <th>Categoría / formato</th>
+              <th>Línea</th>
+              <th>Unidad conteo</th>
+              <th class="numero">Contenido</th>
+              <th>Unidad contenido</th>
+              <th class="numero">Stock mínimo</th>
+              <th class="numero">Orden</th>
+              <th>Activo</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-config-body">
+            <!-- generado por JS -->
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+  <footer>
+    Sistema de inventario interno · Mepiache
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/configuracion.js"></script>
+</body>
+</html>

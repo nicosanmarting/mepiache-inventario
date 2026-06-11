@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Mepiache | Stock actual</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div id="app-layout">
+    <main>
+
+      <a href="inicio.html" class="volver">&larr; Inicio</a>
+
+      <div class="panel-titulo">
+        <h2>Stock actual</h2>
+      </div>
+
+      <div class="resumen-cards" id="resumen-cards">
+        <!-- generado por JS -->
+      </div>
+
+      <div class="filtros">
+        <select id="filtro-categoria">
+          <option value="">Todas las categorías / formatos</option>
+        </select>
+        <input type="text" id="filtro-sabor" placeholder="Buscar sabor o código...">
+        <select id="filtro-estado">
+          <option value="">Todos los estados</option>
+          <option value="ok">OK</option>
+          <option value="bajo">Stock bajo</option>
+          <option value="sin_stock">Sin stock</option>
+        </select>
+      </div>
+
+      <div class="tabla-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Sabor</th>
+              <th>Categoría / formato</th>
+              <th class="numero">Stock actual</th>
+              <th class="numero">Stock mínimo</th>
+              <th>Estado</th>
+              <th>Última actualización</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-stock-body">
+            <!-- generado por JS -->
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+  <footer>
+    Sistema de inventario interno · Mepiache
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/stock.js"></script>
+</body>
+</html>

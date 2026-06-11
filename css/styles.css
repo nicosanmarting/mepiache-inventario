@@ -394,6 +394,26 @@ td.numero, th.numero {
   display: block;
 }
 
+.form-mensaje.error {
+  background-color: #fbe3e1;
+  color: #b3261e;
+  display: block;
+}
+
+.form-card .form-row.checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-card .form-row.checkbox input {
+  width: auto;
+}
+
+.form-card .form-row.checkbox label {
+  margin-bottom: 0;
+}
+
 .aviso-mock {
   background-color: var(--crema-oscura);
   border-left: 4px solid var(--dorado);
@@ -408,4 +428,222 @@ footer {
   font-size: 12px;
   color: #8a7a5c;
   padding: 24px;
+}
+
+/* ---------- Navegación (multi-página) ---------- */
+
+.app-nav {
+  display: flex;
+  background-color: var(--crema-oscura);
+  padding: 0 24px;
+  gap: 4px;
+  flex-wrap: wrap;
+  overflow-x: auto;
+}
+
+.nav-link {
+  display: inline-block;
+  color: var(--negro);
+  text-decoration: none;
+  border-radius: 8px 8px 0 0;
+  padding: 12px 18px;
+  font-weight: bold;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.nav-link:hover {
+  background-color: var(--crema-suave);
+}
+
+.nav-link.activo {
+  background-color: var(--crema-suave);
+  color: var(--dorado);
+  border-bottom: 3px solid var(--dorado);
+}
+
+/* ---------- Inicio: botones de acción grandes ---------- */
+
+.acciones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.btn-grande {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid var(--crema-oscura);
+  border-radius: 12px;
+  padding: 24px 12px;
+  text-decoration: none;
+  color: var(--negro);
+  font-weight: bold;
+  font-size: 15px;
+  text-align: center;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  min-height: 110px;
+}
+
+.btn-grande:hover {
+  background-color: var(--crema-suave);
+  border-color: var(--dorado);
+}
+
+.btn-grande .icono {
+  font-size: 30px;
+}
+
+.btn-grande.acento {
+  background-color: var(--dorado);
+  border-color: var(--dorado);
+}
+
+.btn-grande.acento:hover {
+  background-color: var(--dorado-claro);
+}
+
+/* ---------- Badge: sin stock (más fuerte que "bajo") ---------- */
+
+.badge.sin {
+  background-color: #b3261e;
+  color: #fff;
+}
+
+/* ---------- Selección de categoría/formato ---------- */
+
+.categoria-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.categoria-card {
+  background: #fff;
+  border: 1px solid var(--crema-oscura);
+  border-radius: 10px;
+  padding: 16px;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-cuerpo);
+  font-size: 14px;
+}
+
+.categoria-card:hover {
+  border-color: var(--dorado);
+}
+
+.categoria-card.seleccionada {
+  background-color: var(--crema-suave);
+  border-color: var(--dorado);
+  box-shadow: inset 0 0 0 1px var(--dorado);
+}
+
+.categoria-card .categoria-nombre {
+  font-family: var(--font-titulo);
+  font-size: 17px;
+  margin-bottom: 4px;
+}
+
+.categoria-card .categoria-detalle {
+  color: #8a7a5c;
+  font-size: 12px;
+}
+
+/* ---------- Tabla de conteo ---------- */
+
+.tabla-conteo input[type="number"],
+.tabla-conteo input[type="text"] {
+  width: 100%;
+  min-width: 80px;
+  padding: 6px 8px;
+  font-size: 14px;
+}
+
+.tabla-conteo td.diferencia.positiva {
+  color: #2e7d32;
+  font-weight: bold;
+}
+
+.tabla-conteo td.diferencia.negativa {
+  color: #b3261e;
+  font-weight: bold;
+}
+
+/* ---------- Tabla de configuración (productos) ---------- */
+
+.tabla-config input[type="number"],
+.tabla-config input[type="text"],
+.tabla-config select {
+  width: 100%;
+  min-width: 70px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.tabla-config input.input-codigo {
+  min-width: 60px;
+}
+
+.tabla-config input.input-sabor {
+  min-width: 160px;
+}
+
+.tabla-config input[type="checkbox"] {
+  width: auto;
+}
+
+.tabla-config tr.fila-inactiva {
+  opacity: 0.55;
+}
+
+.tabla-config td.numero input {
+  text-align: right;
+}
+
+.form-card.form-card-toggle {
+  margin-bottom: 20px;
+}
+
+/* ---------- Acciones rápidas en tablas ---------- */
+
+.acciones-tabla {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.acciones-tabla a, .acciones-tabla button {
+  padding: 5px 10px;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+/* ---------- Volver ---------- */
+
+.volver {
+  display: inline-block;
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: var(--negro);
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.volver:hover {
+  color: var(--dorado);
+}
+
+/* ---------- Estado vacío ---------- */
+
+.estado-vacio {
+  padding: 30px;
+  text-align: center;
+  color: #8a7a5c;
 }

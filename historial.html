@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Mepiache | Historial</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div id="app-layout">
+    <main>
+
+      <a href="inicio.html" class="volver">&larr; Inicio</a>
+
+      <div class="panel-titulo">
+        <h2>Historial de movimientos</h2>
+      </div>
+
+      <div class="filtros" id="filtros-historial">
+        <div>
+          <label for="filtro-desde">Desde</label>
+          <input type="date" id="filtro-desde">
+        </div>
+        <div>
+          <label for="filtro-hasta">Hasta</label>
+          <input type="date" id="filtro-hasta">
+        </div>
+        <div>
+          <label for="filtro-categoria">Categoría / formato</label>
+          <select id="filtro-categoria">
+            <option value="">Todas</option>
+          </select>
+        </div>
+        <div>
+          <label for="filtro-tipo">Tipo de movimiento</label>
+          <select id="filtro-tipo">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div>
+          <label for="filtro-sabor">Sabor / código</label>
+          <input type="text" id="filtro-sabor" placeholder="Buscar...">
+        </div>
+      </div>
+
+      <div class="tabla-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Sabor</th>
+              <th>Categoría / formato</th>
+              <th>Tipo</th>
+              <th class="numero">Cantidad</th>
+              <th class="numero">Stock antes → después</th>
+              <th>Motivo</th>
+              <th>Nota</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-historial-body">
+            <!-- generado por JS -->
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+  <footer>
+    Sistema de inventario interno · Mepiache
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/historial.js"></script>
+</body>
+</html>
