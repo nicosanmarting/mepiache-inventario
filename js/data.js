@@ -1,129 +1,124 @@
 /* ===========================
-   Mepiache Inventario - Datos
+   Mepiache Inventario - Datos (Supabase)
    ---------------------------------------------
-   Catálogo de productos (sabores reales del sitio web)
-   + datos de prueba (producción y ventas) guardados
-   en localStorage para simular una base de datos.
+   Acceso a las tablas productos, batches y ventas
+   definidas en sql/schema.sql.
 
-   Cuando Supabase esté listo, reemplazar:
-     - PRODUCTOS           -> SELECT * FROM productos
-     - getBatches/addBatch -> SELECT/INSERT en tabla "batches"
-     - getVentas/addVenta  -> SELECT/INSERT en tabla "ventas"
-   Los nombres de campos (producto_id, cantidad, fecha,
-   canal, notas) ya están alineados con sql/schema.sql
-   para que el cambio sea lo más directo posible.
+   Notas de mapeo:
+   - En la tabla "productos", la columna "sabor" tiene
+     el nombre del sabor (ej: "Arroz con Leche") y
+     "nombre" es genérico ("Helado 5L" / "Helado 10L").
+     Para que el resto del frontend sea simple, acá se
+     expone cada producto como { id, nombre, formato }
+     donde "nombre" = sabor.
    =========================== */
 
-// --------- Catálogo de productos ---------
-// NOTA: el contexto del sitio menciona "12 sabores" para 5L,
-// pero solo se listaron 11 nombres. Se dejaron los 11 reales;
-// agregar el sabor faltante cuando se confirme.
+let _productosCache = null;
 
-const PRODUCTOS = [
-  // ---- Helados 5 Litros ----
-  { id: 'p5-arroz-leche',       nombre: 'Arroz con Leche',     formato: '5L' },
-  { id: 'p5-banana-split',      nombre: 'Banana Split',        formato: '5L' },
-  { id: 'p5-cafe-capuchino',    nombre: 'Café Capuchino',      formato: '5L' },
-  { id: 'p5-chirimoya-alegre',  nombre: 'Chirimoya Alegre',    formato: '5L' },
-  { id: 'p5-chocolate-clasico', nombre: 'Chocolate Clásico',   formato: '5L' },
-  { id: 'p5-frambuesa',         nombre: 'Frambuesa',           formato: '5L' },
-  { id: 'p5-frutos-bosque',     nombre: 'Frutos del Bosque',   formato: '5L' },
-  { id: 'p5-lucuma-manjar',     nombre: 'Lúcuma Manjar',       formato: '5L' },
-  { id: 'p5-pina-agua',         nombre: 'Piña al Agua',        formato: '5L' },
-  { id: 'p5-pistacho',          nombre: 'Pistacho',            formato: '5L' },
-  { id: 'p5-vainilla',          nombre: 'Vainilla',            formato: '5L' },
+async function cargarProductos() {
+  const { data, error } = await supabaseClient
+    .from('productos')
+    .select('id, sabor, formato')
+    .eq('activo', true)
+    .order('formato', { ascending: true })
+    .order('sabor', { ascending: true });
 
-  // ---- Helados 10 Litros (según temporada y stock) ----
-  { id: 'p10-chocolate',        nombre: 'Chocolate',           formato: '10L' },
-  { id: 'p10-frutilla',         nombre: 'Frutilla',            formato: '10L' },
-  { id: 'p10-vainilla',         nombre: 'Vainilla',            formato: '10L' },
-  { id: 'p10-lucuma',           nombre: 'Lúcuma',              formato: '10L' },
-  { id: 'p10-frambuesa',        nombre: 'Frambuesa',           formato: '10L' },
-  { id: 'p10-chirimoya-alegre', nombre: 'Chirimoya Alegre',    formato: '10L' },
-  { id: 'p10-manjar',           nombre: 'Manjar',              formato: '10L' },
-];
-
-// --------- Datos de prueba (seed) ---------
-
-const SEED_BATCHES = [
-  { producto_id: 'p5-chocolate-clasico', cantidad: 40, fecha: '2026-05-20', notas: 'Producción semanal' },
-  { producto_id: 'p5-vainilla',          cantidad: 35, fecha: '2026-05-20', notas: '' },
-  { producto_id: 'p5-frutos-bosque',     cantidad: 25, fecha: '2026-05-22', notas: '' },
-  { producto_id: 'p5-lucuma-manjar',     cantidad: 30, fecha: '2026-05-25', notas: '' },
-  { producto_id: 'p5-pistacho',          cantidad: 15, fecha: '2026-05-28', notas: 'Lote chico, prueba' },
-  { producto_id: 'p10-chocolate',        cantidad: 18, fecha: '2026-05-22', notas: '' },
-  { producto_id: 'p10-frutilla',         cantidad: 20, fecha: '2026-05-22', notas: '' },
-  { producto_id: 'p10-manjar',           cantidad: 12, fecha: '2026-06-01', notas: '' },
-  { producto_id: 'p5-frambuesa',         cantidad: 22, fecha: '2026-06-03', notas: '' },
-  { producto_id: 'p5-banana-split',      cantidad: 18, fecha: '2026-06-05', notas: '' },
-  { producto_id: 'p10-vainilla',         cantidad: 14, fecha: '2026-06-05', notas: '' },
-  { producto_id: 'p5-arroz-leche',       cantidad: 10, fecha: '2026-06-08', notas: '' },
-];
-
-const SEED_VENTAS = [
-  { producto_id: 'p5-chocolate-clasico', cantidad: 12, fecha: '2026-05-23', canal: 'distribuidor', notas: '' },
-  { producto_id: 'p5-vainilla',          cantidad: 10, fecha: '2026-05-24', canal: 'presencial',   notas: '' },
-  { producto_id: 'p10-chocolate',        cantidad: 8,  fecha: '2026-05-26', canal: 'distribuidor', notas: '' },
-  { producto_id: 'p5-frutos-bosque',     cantidad: 20, fecha: '2026-05-27', canal: 'presencial',   notas: 'Pedido grande' },
-  { producto_id: 'p10-frutilla',         cantidad: 15, fecha: '2026-05-29', canal: 'distribuidor', notas: '' },
-  { producto_id: 'p5-lucuma-manjar',     cantidad: 8,  fecha: '2026-06-02', canal: 'presencial',   notas: '' },
-  { producto_id: 'p5-pistacho',          cantidad: 14, fecha: '2026-06-04', canal: 'presencial',   notas: '' },
-  { producto_id: 'p5-frambuesa',         cantidad: 5,  fecha: '2026-06-06', canal: 'distribuidor', notas: '' },
-  { producto_id: 'p10-manjar',           cantidad: 3,  fecha: '2026-06-07', canal: 'presencial',   notas: '' },
-  { producto_id: 'p5-banana-split',      cantidad: 6,  fecha: '2026-06-09', canal: 'presencial',   notas: '' },
-];
-
-// --------- Persistencia (localStorage como BD simulada) ---------
-
-const KEY_BATCHES = 'mepiache_batches';
-const KEY_VENTAS = 'mepiache_ventas';
-
-function _inicializarDatos() {
-  if (!localStorage.getItem(KEY_BATCHES)) {
-    localStorage.setItem(KEY_BATCHES, JSON.stringify(SEED_BATCHES));
+  if (error) {
+    console.error('Error cargando productos:', error);
+    _productosCache = [];
+    return _productosCache;
   }
-  if (!localStorage.getItem(KEY_VENTAS)) {
-    localStorage.setItem(KEY_VENTAS, JSON.stringify(SEED_VENTAS));
-  }
+
+  _productosCache = data.map(p => ({
+    id: p.id,
+    nombre: p.sabor,
+    formato: p.formato,
+  }));
+
+  return _productosCache;
 }
-_inicializarDatos();
 
 function getProductos() {
-  return PRODUCTOS;
+  return _productosCache || [];
 }
 
 function getProductoPorId(id) {
-  return PRODUCTOS.find(p => p.id === id);
+  return (_productosCache || []).find(p => p.id === id);
 }
 
-function getBatches() {
-  return JSON.parse(localStorage.getItem(KEY_BATCHES) || '[]');
+// --------- Producción (batches) ---------
+
+async function getBatches() {
+  const { data, error } = await supabaseClient
+    .from('batches')
+    .select('id, producto_id, cantidad, fecha, notas')
+    .order('fecha', { ascending: false });
+
+  if (error) {
+    console.error('Error cargando batches:', error);
+    return [];
+  }
+  return data;
 }
 
-function addBatch(batch) {
-  const batches = getBatches();
-  batches.push(batch);
-  localStorage.setItem(KEY_BATCHES, JSON.stringify(batches));
+async function addBatch(batch) {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+
+  const { error } = await supabaseClient.from('batches').insert({
+    producto_id: batch.producto_id,
+    cantidad: batch.cantidad,
+    fecha: batch.fecha,
+    notas: batch.notas || null,
+    usuario_id: user ? user.id : null,
+  });
+
+  if (error) {
+    console.error('Error guardando producción:', error);
+    throw error;
+  }
 }
 
-function getVentas() {
-  return JSON.parse(localStorage.getItem(KEY_VENTAS) || '[]');
+// --------- Ventas ---------
+
+async function getVentas() {
+  const { data, error } = await supabaseClient
+    .from('ventas')
+    .select('id, producto_id, cantidad, fecha, canal, notas')
+    .order('fecha', { ascending: false });
+
+  if (error) {
+    console.error('Error cargando ventas:', error);
+    return [];
+  }
+  return data;
 }
 
-function addVenta(venta) {
-  const ventas = getVentas();
-  ventas.push(venta);
-  localStorage.setItem(KEY_VENTAS, JSON.stringify(ventas));
+async function addVenta(venta) {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+
+  const { error } = await supabaseClient.from('ventas').insert({
+    producto_id: venta.producto_id,
+    cantidad: venta.cantidad,
+    fecha: venta.fecha,
+    canal: venta.canal,
+    notas: venta.notas || null,
+    usuario_id: user ? user.id : null,
+  });
+
+  if (error) {
+    console.error('Error guardando venta:', error);
+    throw error;
+  }
 }
 
 // --------- Cálculo de stock ---------
 // stock = total producido - total vendido, por producto
 
-function calcularStock() {
-  const batches = getBatches();
-  const ventas = getVentas();
+async function calcularStock() {
+  const [batches, ventas] = await Promise.all([getBatches(), getVentas()]);
+  const productos = getProductos();
 
-  return PRODUCTOS.map(producto => {
+  return productos.map(producto => {
     const totalProducido = batches
       .filter(b => b.producto_id === producto.id)
       .reduce((sum, b) => sum + Number(b.cantidad), 0);
@@ -139,11 +134,4 @@ function calcularStock() {
       stock: totalProducido - totalVendido,
     };
   });
-}
-
-// --------- Reset de datos de prueba (botón opcional) ---------
-
-function resetDatosDemo() {
-  localStorage.setItem(KEY_BATCHES, JSON.stringify(SEED_BATCHES));
-  localStorage.setItem(KEY_VENTAS, JSON.stringify(SEED_VENTAS));
 }

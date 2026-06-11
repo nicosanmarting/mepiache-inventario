@@ -1,49 +1,46 @@
 /* ===========================
-   Mepiache Inventario - Autenticación (MOCK)
+   Mepiache Inventario - Autenticación (Supabase)
    ---------------------------------------------
-   Esto es un login simulado con usuarios fijos,
-   solo para poder navegar el frontend con datos
-   de prueba.
-
-   Cuando Supabase esté listo, reemplazar este
-   archivo por llamadas a:
-     supabase.auth.signInWithPassword({ email, password })
-   y guardar la sesión real en vez de localStorage.
+   Usa Supabase Auth (email + contraseña).
+   Los usuarios se crean manualmente en
+   Authentication > Users del panel de Supabase.
    =========================== */
 
-const USUARIOS_MOCK = {
-  admin: { clave: 'admin', nombre: 'Nico', rol: 'admin' },
-  empleado: { clave: 'empleado', nombre: 'Empleado', rol: 'empleado' },
-};
-
-// Si ya hay sesión activa y estamos en el login, ir directo al dashboard
-if (window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/')) {
-  const sesion = localStorage.getItem('mepiache_sesion');
-  if (sesion) {
+(async () => {
+  // Si ya hay sesión activa, ir directo al dashboard
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) {
     window.location.href = 'dashboard.html';
   }
-}
+})();
 
 const formLogin = document.getElementById('form-login');
 if (formLogin) {
-  formLogin.addEventListener('submit', (e) => {
+  formLogin.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const usuario = document.getElementById('usuario').value.trim().toLowerCase();
+    const email = document.getElementById('email').value.trim();
     const clave = document.getElementById('clave').value;
     const errorEl = document.getElementById('login-error');
+    const btn = document.getElementById('btn-login');
 
-    const usuarioValido = USUARIOS_MOCK[usuario];
+    errorEl.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Ingresando...';
 
-    if (usuarioValido && usuarioValido.clave === clave) {
-      localStorage.setItem('mepiache_sesion', JSON.stringify({
-        usuario: usuario,
-        nombre: usuarioValido.nombre,
-        rol: usuarioValido.rol,
-      }));
-      window.location.href = 'dashboard.html';
-    } else {
+    const { error } = await supabaseClient.auth.signInWithPassword({
+      email: email,
+      password: clave,
+    });
+
+    if (error) {
+      errorEl.textContent = 'Email o contraseña incorrectos.';
       errorEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Ingresar';
+      return;
     }
+
+    window.location.href = 'dashboard.html';
   });
 }

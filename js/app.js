@@ -1,30 +1,14 @@
 /* ===========================
-   Mepiache Inventario - Lógica del dashboard
+   Mepiache Inventario - Lógica del dashboard (Supabase)
    =========================== */
 
 const STOCK_BAJO_UMBRAL = 10; // unidades. Ajustable según criterio del negocio.
 
 // --------- Sesión ---------
 
-const sesionRaw = localStorage.getItem('mepiache_sesion');
-if (!sesionRaw) {
+document.getElementById('btn-logout').addEventListener('click', async () => {
+  await supabaseClient.auth.signOut();
   window.location.href = 'index.html';
-}
-const sesion = JSON.parse(sesionRaw || '{}');
-
-document.getElementById('saludo-usuario').textContent =
-  `Hola, ${sesion.nombre || 'usuario'} (${sesion.rol || ''})`;
-
-document.getElementById('btn-logout').addEventListener('click', () => {
-  localStorage.removeItem('mepiache_sesion');
-  window.location.href = 'index.html';
-});
-
-document.getElementById('btn-reset-demo').addEventListener('click', () => {
-  if (confirm('¿Reiniciar los datos de prueba (producción y ventas) a su estado inicial?')) {
-    resetDatosDemo();
-    renderTodo();
-  }
 });
 
 // --------- Tabs ---------
@@ -79,8 +63,11 @@ function renderResumenCards(stockData) {
   `).join('');
 }
 
-function renderTablaStock() {
-  const stockData = calcularStock();
+async function renderTablaStock() {
+  const tbody = document.getElementById('tabla-stock-body');
+  tbody.innerHTML = `<tr><td colspan="6">Cargando...</td></tr>`;
+
+  const stockData = await calcularStock();
 
   renderResumenCards(stockData);
 
@@ -91,8 +78,6 @@ function renderTablaStock() {
     .filter(p => !formato || p.formato === formato)
     .filter(p => !busqueda || p.nombre.toLowerCase().includes(busqueda))
     .sort((a, b) => a.formato.localeCompare(b.formato) || a.nombre.localeCompare(b.nombre));
-
-  const tbody = document.getElementById('tabla-stock-body');
 
   if (filtrados.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6">No se encontraron sabores con ese filtro.</td></tr>`;
@@ -140,13 +125,11 @@ function poblarSelectProductos(selectEl) {
   `;
 }
 
-function renderTablaProduccion() {
-  const batches = getBatches()
-    .slice()
-    .sort((a, b) => b.fecha.localeCompare(a.fecha))
-    .slice(0, 15);
-
+async function renderTablaProduccion() {
   const tbody = document.getElementById('tabla-produccion-body');
+  tbody.innerHTML = `<tr><td colspan="5">Cargando...</td></tr>`;
+
+  const batches = (await getBatches()).slice(0, 15);
 
   if (batches.length === 0) {
     tbody.innerHTML = `<tr><td colspan="5">Aún no hay producción registrada.</td></tr>`;
@@ -168,8 +151,11 @@ function renderTablaProduccion() {
 }
 
 const formProduccion = document.getElementById('form-produccion');
-formProduccion.addEventListener('submit', (e) => {
+formProduccion.addEventListener('submit', async (e) => {
   e.preventDefault();
+
+  const btn = formProduccion.querySelector('button[type="submit"]');
+  btn.disabled = true;
 
   const batch = {
     producto_id: document.getElementById('prod-producto').value,
@@ -178,28 +164,32 @@ formProduccion.addEventListener('submit', (e) => {
     notas: document.getElementById('prod-notas').value.trim(),
   };
 
-  addBatch(batch);
+  try {
+    await addBatch(batch);
 
-  const mensaje = document.getElementById('prod-mensaje');
-  mensaje.classList.add('exito');
-  setTimeout(() => mensaje.classList.remove('exito'), 2500);
+    const mensaje = document.getElementById('prod-mensaje');
+    mensaje.classList.add('exito');
+    setTimeout(() => mensaje.classList.remove('exito'), 2500);
 
-  formProduccion.reset();
-  document.getElementById('prod-fecha').valueAsDate = new Date();
+    formProduccion.reset();
+    document.getElementById('prod-fecha').valueAsDate = new Date();
 
-  renderTablaProduccion();
-  renderTablaStock();
+    await renderTablaProduccion();
+    await renderTablaStock();
+  } catch (err) {
+    alert('No se pudo guardar la producción. Intenta de nuevo.');
+  } finally {
+    btn.disabled = false;
+  }
 });
 
 // --------- Ventas ---------
 
-function renderTablaVentas() {
-  const ventas = getVentas()
-    .slice()
-    .sort((a, b) => b.fecha.localeCompare(a.fecha))
-    .slice(0, 15);
-
+async function renderTablaVentas() {
   const tbody = document.getElementById('tabla-ventas-body');
+  tbody.innerHTML = `<tr><td colspan="6">Cargando...</td></tr>`;
+
+  const ventas = (await getVentas()).slice(0, 15);
 
   if (ventas.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6">Aún no hay ventas registradas.</td></tr>`;
@@ -222,8 +212,11 @@ function renderTablaVentas() {
 }
 
 const formVentas = document.getElementById('form-ventas');
-formVentas.addEventListener('submit', (e) => {
+formVentas.addEventListener('submit', async (e) => {
   e.preventDefault();
+
+  const btn = formVentas.querySelector('button[type="submit"]');
+  btn.disabled = true;
 
   const venta = {
     producto_id: document.getElementById('venta-producto').value,
@@ -233,30 +226,51 @@ formVentas.addEventListener('submit', (e) => {
     notas: document.getElementById('venta-notas').value.trim(),
   };
 
-  addVenta(venta);
+  try {
+    await addVenta(venta);
 
-  const mensaje = document.getElementById('venta-mensaje');
-  mensaje.classList.add('exito');
-  setTimeout(() => mensaje.classList.remove('exito'), 2500);
+    const mensaje = document.getElementById('venta-mensaje');
+    mensaje.classList.add('exito');
+    setTimeout(() => mensaje.classList.remove('exito'), 2500);
 
-  formVentas.reset();
-  document.getElementById('venta-fecha').valueAsDate = new Date();
+    formVentas.reset();
+    document.getElementById('venta-fecha').valueAsDate = new Date();
 
-  renderTablaVentas();
-  renderTablaStock();
+    await renderTablaVentas();
+    await renderTablaStock();
+  } catch (err) {
+    alert('No se pudo guardar la venta. Intenta de nuevo.');
+  } finally {
+    btn.disabled = false;
+  }
 });
 
 // --------- Inicialización ---------
 
-function renderTodo() {
-  renderTablaStock();
-  renderTablaProduccion();
-  renderTablaVentas();
+async function renderTodo() {
+  await Promise.all([
+    renderTablaStock(),
+    renderTablaProduccion(),
+    renderTablaVentas(),
+  ]);
 }
 
-poblarSelectProductos(document.getElementById('prod-producto'));
-poblarSelectProductos(document.getElementById('venta-producto'));
-document.getElementById('prod-fecha').valueAsDate = new Date();
-document.getElementById('venta-fecha').valueAsDate = new Date();
+(async () => {
+  // Verificar sesión real de Supabase
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) {
+    window.location.href = 'index.html';
+    return;
+  }
 
-renderTodo();
+  document.getElementById('saludo-usuario').textContent = `Hola, ${session.user.email}`;
+
+  await cargarProductos();
+
+  poblarSelectProductos(document.getElementById('prod-producto'));
+  poblarSelectProductos(document.getElementById('venta-producto'));
+  document.getElementById('prod-fecha').valueAsDate = new Date();
+  document.getElementById('venta-fecha').valueAsDate = new Date();
+
+  await renderTodo();
+})();

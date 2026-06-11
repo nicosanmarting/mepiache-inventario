@@ -5,51 +5,44 @@ Sistema interno de inventario para la heladería Mepiache. Registra producción
 
 ## Estado actual
 
-Este es el **frontend funcional con datos de prueba**. Todo corre en el
-navegador con `localStorage` como base de datos simulada — no hay conexión
-real a Supabase todavía.
+**Conectado a Supabase.** Login real (Supabase Auth) y datos persistentes
+en PostgreSQL (tablas `productos`, `batches`, `ventas`).
 
-- `index.html` — login (mock: `admin/admin` o `empleado/empleado`)
+- `index.html` — login (Supabase Auth, email + contraseña)
 - `dashboard.html` — app principal (Stock / Producción / Ventas)
 - `css/styles.css` — estilos con la identidad visual de Mepiache
-- `js/data.js` — catálogo de productos + datos de prueba + cálculo de stock
-- `js/auth.js` — login simulado
+- `js/supabase-config.js` — credenciales del proyecto (URL + anon key).
+  **No se sube a GitHub** (está en `.gitignore`)
+- `js/data.js` — queries a Supabase (productos, batches, ventas, cálculo de stock)
+- `js/auth.js` — login/sesión con Supabase Auth
 - `js/app.js` — lógica del dashboard
-- `sql/schema.sql` — script para crear las tablas en Supabase
+- `sql/schema.sql` — script ya ejecutado en Supabase (tablas, RLS, catálogo)
 
 ## Cómo probarlo
 
 Abrir `index.html` en el navegador (doble clic, o con una extensión tipo
-"Live Server" si quieres recargar más cómodo). Login con `admin / admin`.
+"Live Server"). Login con el email/contraseña de un usuario creado en
+**Authentication > Users** del proyecto Supabase.
 
-Los datos de producción/ventas que registres quedan guardados en el
-navegador. Hay un botón **"Reiniciar demo"** para volver a los datos
-iniciales.
-
-## Checklist para conectar Supabase (pendiente)
+## Checklist Supabase
 
 - [x] Proyecto Supabase creado
-- [ ] Ejecutar `sql/schema.sql` en el SQL Editor de Supabase (crea tablas,
-      políticas de seguridad y carga el catálogo de sabores)
-- [ ] Activar Authentication > Email (o el método que prefieras) e invitar
-      a los 2 usuarios (Nico admin + empleado)
-- [ ] Copiar `Project URL` y `anon public key` desde Settings → API
-- [ ] Crear `js/supabase-config.js` (no se sube a GitHub, está en
-      `.gitignore`) con:
+- [x] `sql/schema.sql` ejecutado (tablas, RLS y catálogo de 18 sabores)
+- [x] Usuarios creados en Authentication (Nico admin + empleado)
+- [x] `js/supabase-config.js` creado con Project URL + anon key
+- [x] `auth.js` y `data.js` conectados a Supabase
 
-  ```js
-  const SUPABASE_URL = 'https://xxxxx.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOi...';
-  ```
+## Si clonas el repo en otro computador
 
-- [ ] Reemplazar `js/data.js` y `js/auth.js`:
-  - `auth.js`: cambiar el login mock por
-    `supabase.auth.signInWithPassword({ email, password })`
-  - `data.js`: cambiar `localStorage` por consultas a Supabase
-    (`select`, `insert` en `productos`, `batches`, `ventas`).
-    Los nombres de campos ya están alineados para que el cambio sea directo.
-  - Cargar el SDK de Supabase vía CDN en los `.html`:
-    `<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>`
+`js/supabase-config.js` no está en git (tiene credenciales). Para que la app
+funcione hay que recrearlo con:
+
+```js
+const SUPABASE_URL = 'https://jivccnpqangjckoxakyi.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOi...'; // anon public key, desde Settings > API Keys
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+```
 
 ## Pendiente / a confirmar
 

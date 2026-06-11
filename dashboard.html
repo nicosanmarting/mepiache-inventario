@@ -12,7 +12,6 @@
     <div class="marca">Mepi<span>ache</span> · Inventario</div>
     <div class="usuario-info">
       <span id="saludo-usuario"></span>
-      <button class="secundario" id="btn-reset-demo" title="Vuelve los datos de prueba a su estado inicial">Reiniciar demo</button>
       <button class="secundario" id="btn-logout">Cerrar sesión</button>
     </div>
   </header>
@@ -24,11 +23,6 @@
   </nav>
 
   <main>
-
-    <div class="aviso-mock">
-      <strong>Modo demo:</strong> los datos se guardan en este navegador (localStorage), no en una base de datos real todavía.
-      Cuando Supabase esté conectado, esto pasará a ser persistente y compartido entre usuarios. Ver <code>sql/schema.sql</code> y <code>README.md</code>.
-    </div>
 
     <!-- ========== TAB: STOCK ========== -->
     <section class="tab-panel activo" id="tab-stock">
@@ -187,6 +181,8 @@
     Sistema de inventario interno · Mepiache · Datos de prueba (demo local)
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
 </body>
