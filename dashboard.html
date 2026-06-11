@@ -21,6 +21,7 @@
     <button class="tab-btn activo" data-tab="stock">Stock</button>
     <button class="tab-btn" data-tab="produccion">Producción</button>
     <button class="tab-btn" data-tab="ventas">Ventas</button>
+    <button class="tab-btn" data-tab="metricas">Métricas</button>
   </nav>
 
   <main>
@@ -176,6 +177,32 @@
       </div>
     </section>
 
+    <!-- ========== TAB: MÉTRICAS ========== -->
+    <section class="tab-panel" id="tab-metricas">
+      <div class="panel-titulo">
+        <h2>Vista general</h2>
+        <button class="secundario" id="btn-exportar-excel">Exportar a Excel</button>
+      </div>
+
+      <div class="resumen-cards" id="metricas-cards">
+        <!-- generado por JS -->
+      </div>
+
+      <div class="panel-titulo" style="margin-top: 28px;">
+        <h2>Producción vs. ventas por mes</h2>
+      </div>
+      <div class="grafico-wrapper">
+        <canvas id="grafico-prod-vs-ventas"></canvas>
+      </div>
+
+      <div class="panel-titulo" style="margin-top: 28px;">
+        <h2>Evolución del stock</h2>
+      </div>
+      <div class="grafico-wrapper">
+        <canvas id="grafico-stock"></canvas>
+      </div>
+    </section>
+
   </main>
 
   <footer>
@@ -183,8 +210,11 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="js/supabase-config.js"></script>
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/metricas.js"></script>
 </body>
 </html>

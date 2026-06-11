@@ -262,6 +262,31 @@ main {
   color: #b3261e;
 }
 
+.card .card-variacion {
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: bold;
+}
+
+.card .card-variacion.positiva {
+  color: #2e7d32;
+}
+
+.card .card-variacion.negativa {
+  color: #b3261e;
+}
+
+/* ---------- Gráficos ---------- */
+
+.grafico-wrapper {
+  background: #fff;
+  border: 1px solid var(--crema-oscura);
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 22px;
+  height: 320px;
+}
+
 /* ---------- Tablas ---------- */
 
 .filtros {

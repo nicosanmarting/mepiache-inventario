@@ -23,6 +23,10 @@ tabButtons.forEach(btn => {
 
     btn.classList.add('activo');
     document.getElementById(`tab-${btn.dataset.tab}`).classList.add('activo');
+
+    if (btn.dataset.tab === 'metricas' && typeof renderMetricas === 'function') {
+      renderMetricas();
+    }
   });
 });
 

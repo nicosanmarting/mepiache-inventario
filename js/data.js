@@ -135,3 +135,64 @@ async function calcularStock() {
     };
   });
 }
+
+// --------- Métricas mensuales ---------
+
+function _mesDeFecha(fechaStr) {
+  return fechaStr ? fechaStr.slice(0, 7) : ''; // 'YYYY-MM'
+}
+
+function _sumarMeses(mesBase, n) {
+  const [anio, mes] = mesBase.split('-').map(Number);
+  const d = new Date(anio, mes - 1 + n, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+// Devuelve producción, ventas y stock agregados por mes para los últimos
+// `numMeses` meses (incluyendo el actual), más comparación mes actual vs anterior.
+async function getMetricasMensuales(numMeses = 6) {
+  const [batches, ventas] = await Promise.all([getBatches(), getVentas()]);
+
+  const hoy = new Date();
+  const mesActual = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
+
+  const meses = [];
+  for (let i = numMeses - 1; i >= 0; i--) {
+    meses.push(_sumarMeses(mesActual, -i));
+  }
+
+  const producidoPorMes = meses.map(mes =>
+    batches.filter(b => _mesDeFecha(b.fecha) === mes)
+      .reduce((s, b) => s + Number(b.cantidad), 0)
+  );
+
+  const vendidoPorMes = meses.map(mes =>
+    ventas.filter(v => _mesDeFecha(v.fecha) === mes)
+      .reduce((s, v) => s + Number(v.cantidad), 0)
+  );
+
+  // Stock acumulado al cierre de cada mes (considera todo el historial)
+  const stockAcumuladoPorMes = meses.map(mes => {
+    const producidoHasta = batches.filter(b => _mesDeFecha(b.fecha) <= mes)
+      .reduce((s, b) => s + Number(b.cantidad), 0);
+    const vendidoHasta = ventas.filter(v => _mesDeFecha(v.fecha) <= mes)
+      .reduce((s, v) => s + Number(v.cantidad), 0);
+    return producidoHasta - vendidoHasta;
+  });
+
+  const mesAnterior = _sumarMeses(mesActual, -1);
+  const idxActual = meses.indexOf(mesActual);
+  const idxAnterior = meses.indexOf(mesAnterior);
+
+  return {
+    meses,
+    producidoPorMes,
+    vendidoPorMes,
+    stockAcumuladoPorMes,
+    producidoMesActual: idxActual >= 0 ? producidoPorMes[idxActual] : 0,
+    vendidoMesActual: idxActual >= 0 ? vendidoPorMes[idxActual] : 0,
+    producidoMesAnterior: idxAnterior >= 0 ? producidoPorMes[idxAnterior] : 0,
+    vendidoMesAnterior: idxAnterior >= 0 ? vendidoPorMes[idxAnterior] : 0,
+    stockTotal: stockAcumuladoPorMes[stockAcumuladoPorMes.length - 1],
+  };
+}
