@@ -12,11 +12,15 @@ en PostgreSQL (tablas `productos`, `batches`, `ventas`).
 - `dashboard.html` — app principal (Stock / Producción / Ventas)
 - `css/styles.css` — estilos con la identidad visual de Mepiache
 - `js/supabase-config.js` — credenciales del proyecto (URL + anon key).
-  **No se sube a GitHub** (está en `.gitignore`)
+  Se sube al repo a propósito: la *anon key* está diseñada para ser pública
+  (queda visible en el navegador igual); la seguridad real la dan las
+  políticas RLS de `sql/schema.sql`. Lo único que nunca debe subirse es la
+  *service_role key* (no se usa en este proyecto).
 - `js/data.js` — queries a Supabase (productos, batches, ventas, cálculo de stock)
 - `js/auth.js` — login/sesión con Supabase Auth
 - `js/app.js` — lógica del dashboard
 - `sql/schema.sql` — script ya ejecutado en Supabase (tablas, RLS, catálogo)
+- `robots.txt` + meta `noindex` — evita que buscadores indexen esta app interna
 
 ## Cómo probarlo
 
@@ -32,17 +36,28 @@ Abrir `index.html` en el navegador (doble clic, o con una extensión tipo
 - [x] `js/supabase-config.js` creado con Project URL + anon key
 - [x] `auth.js` y `data.js` conectados a Supabase
 
-## Si clonas el repo en otro computador
+## Deploy a producción (Vercel)
 
-`js/supabase-config.js` no está en git (tiene credenciales). Para que la app
-funcione hay que recrearlo con:
+1. **Subir a GitHub**: crear el repo, `git remote add origin <url>` y
+   `git push -u origin master`.
+2. **Vercel**: [vercel.com](https://vercel.com) → New Project → importar el
+   repo. Framework preset: **Other** (es un sitio estático, no necesita build
+   ni variables de entorno — `js/supabase-config.js` ya viaja en el repo).
+3. Deploy. Vercel queda escuchando el branch `master`: cada push hace deploy
+   automático.
+4. **Configurar Supabase para el dominio de producción**:
+   - Authentication → URL Configuration
+   - **Site URL**: poner la URL que te da Vercel (ej.
+     `https://mepiache-inventario.vercel.app`)
+   - **Redirect URLs**: agregar la misma URL (y `http://localhost` /
+     `file://` si quieres seguir probando local)
+5. (Opcional) Dominio propio: Vercel → Settings → Domains, agregar algo como
+   `inventario.mepiache.cl` (requiere configurar DNS).
 
-```js
-const SUPABASE_URL = 'https://jivccnpqangjckoxakyi.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOi...'; // anon public key, desde Settings > API Keys
-
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-```
+La app es de uso interno — `robots.txt` y meta `noindex` ya evitan que
+aparezca en buscadores, pero sigue siendo accesible por URL directa para
+cualquiera con el link. Si se quiere más privacidad, se puede restringir por
+contraseña a nivel de Vercel (plan Pro) o dejarlo solo en un dominio interno.
 
 ## Pendiente / a confirmar
 
