@@ -27,6 +27,8 @@ async function mostrarPasoCategoria() {
   document.getElementById('paso-categoria').style.display = '';
   document.getElementById('paso-detalle').style.display = 'none';
 
+  poblarSelectEncargado();
+
   const cont = document.getElementById('categoria-grid');
   cont.innerHTML = `<div class="estado-vacio">Cargando...</div>`;
 
@@ -53,17 +55,42 @@ async function mostrarPasoCategoria() {
   });
 }
 
+// Llena el selector de encargado con la lista configurable (Configuración > Encargados).
+function poblarSelectEncargado() {
+  const sel = document.getElementById('select-encargado');
+  if (!sel) return;
+  const seleccionado = sel.value;
+  sel.innerHTML = `<option value="">Sin especificar</option>` +
+    getEncargados().map(e => `<option value="${e.nombre}">${e.nombre}</option>`).join('');
+  if (seleccionado) sel.value = seleccionado;
+
+  sel.addEventListener('change', actualizarLinkImprimir);
+  actualizarLinkImprimir();
+}
+
+// Pasa el encargado seleccionado a la planilla imprimible.
+function actualizarLinkImprimir() {
+  const sel = document.getElementById('select-encargado');
+  const link = document.getElementById('link-imprimir-planilla');
+  if (!sel || !link) return;
+  link.href = sel.value
+    ? `imprimir-conteo.html?encargado=${encodeURIComponent(sel.value)}`
+    : 'imprimir-conteo.html';
+}
+
 async function onSeleccionarCategoria(categoria, borradorExistente) {
   let conteoId;
+  const sel = document.getElementById('select-encargado');
+  const encargado = sel ? (sel.value || null) : null;
 
   if (borradorExistente) {
     const continuar = confirm(
       `Ya existe un conteo en borrador para "${categoria}" (creado ${formatearFechaHora(borradorExistente.created_at)}).\n\n` +
       `Aceptar = continuar ese borrador.\nCancelar = empezar un conteo nuevo.`
     );
-    conteoId = continuar ? borradorExistente.id : await crearConteo(categoria, null);
+    conteoId = continuar ? borradorExistente.id : await crearConteo(categoria, null, encargado);
   } else {
-    conteoId = await crearConteo(categoria, null);
+    conteoId = await crearConteo(categoria, null, encargado);
   }
 
   history.replaceState(null, '', `conteo.html?id=${conteoId}`);
@@ -89,9 +116,12 @@ async function mostrarConteo(conteoId) {
   const finalizado = conteo.estado === 'finalizado';
 
   document.getElementById('conteo-titulo').textContent = `Conteo: ${conteo.categoria_formato}`;
-  document.getElementById('conteo-meta').textContent = finalizado
+  const metaTexto = finalizado
     ? `Finalizado ${formatearFechaHora(conteo.finalized_at)}`
     : `Borrador iniciado ${formatearFechaHora(conteo.created_at)}`;
+  document.getElementById('conteo-meta').textContent = conteo.encargado
+    ? `${metaTexto} · Encargado: ${conteo.encargado}`
+    : metaTexto;
 
   const detalle = await getConteoDetalle(conteoId);
 

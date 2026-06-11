@@ -72,6 +72,68 @@ function getCategorias() {
   return CATEGORIAS_FORMATO;
 }
 
+// --------- Encargados de conteo ---------
+
+let _encargadosCache = null;
+
+async function cargarEncargados() {
+  const { data, error } = await supabaseClient
+    .from('encargados')
+    .select('id, nombre, activo, orden')
+    .order('orden', { ascending: true });
+
+  if (error) {
+    console.error('Error cargando encargados:', error);
+    _encargadosCache = [];
+    return _encargadosCache;
+  }
+
+  _encargadosCache = data;
+  return _encargadosCache;
+}
+
+// Encargados activos, para el selector de conteo.
+function getEncargados() {
+  return (_encargadosCache || []).filter(e => e.activo);
+}
+
+// Todos los encargados (activos e inactivos), para Configuración.
+function getEncargadosTodos() {
+  return _encargadosCache || [];
+}
+
+async function crearEncargado(nombre) {
+  const { data, error } = await supabaseClient
+    .from('encargados')
+    .insert({ nombre, activo: true })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creando encargado:', error);
+    throw error;
+  }
+  return data;
+}
+
+async function actualizarEncargado(id, campos) {
+  const payload = {};
+
+  if ('nombre' in campos) payload.nombre = campos.nombre;
+  if ('activo' in campos) payload.activo = !!campos.activo;
+  if ('orden' in campos) payload.orden = (campos.orden === '' || campos.orden === null) ? null : Number(campos.orden);
+
+  const { error } = await supabaseClient
+    .from('encargados')
+    .update(payload)
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error actualizando encargado:', error);
+    throw error;
+  }
+}
+
 // --------- Configuración / productos (admin) ---------
 
 // Trae TODOS los productos (activos e inactivos), sin pasar por la caché.
@@ -278,10 +340,11 @@ async function getMovimientos({ limite = 50, productoId = null, tipoMovimiento =
 
 // --------- Conteos ---------
 
-async function crearConteo(categoriaFormato, observacion) {
+async function crearConteo(categoriaFormato, observacion, encargado) {
   const { data, error } = await supabaseClient.rpc('crear_conteo', {
     p_categoria_formato: categoriaFormato,
     p_observacion: observacion || null,
+    p_encargado: encargado || null,
   });
   if (error) {
     console.error('Error creando conteo:', error);
@@ -338,7 +401,7 @@ async function finalizarConteo(conteoId) {
 async function getConteos({ limite = 20, categoriaFormato = null, estado = null } = {}) {
   let query = supabaseClient
     .from('conteos')
-    .select('id, categoria_formato, usuario_id, estado, observacion, created_at, finalized_at')
+    .select('id, categoria_formato, usuario_id, estado, observacion, encargado, created_at, finalized_at')
     .order('created_at', { ascending: false })
     .limit(limite);
 
@@ -376,7 +439,7 @@ async function getTodoConteoDetalle() {
 async function getConteoPorId(conteoId) {
   const { data, error } = await supabaseClient
     .from('conteos')
-    .select('id, categoria_formato, usuario_id, estado, observacion, created_at, finalized_at')
+    .select('id, categoria_formato, usuario_id, estado, observacion, encargado, created_at, finalized_at')
     .eq('id', conteoId)
     .single();
 

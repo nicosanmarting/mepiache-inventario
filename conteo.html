@@ -16,10 +16,18 @@
 
       <div class="panel-titulo">
         <h2>Nuevo conteo</h2>
+        <a class="btn secundario" id="link-imprimir-planilla" href="imprimir-conteo.html" target="_blank">Imprimir planillas</a>
       </div>
 
       <!-- ========== PASO 1: elegir categoría/formato ========== -->
       <div id="paso-categoria">
+        <div class="form-row" style="max-width: 280px;">
+          <label for="select-encargado">Encargado</label>
+          <select id="select-encargado">
+            <option value="">Sin especificar</option>
+          </select>
+        </div>
+
         <p style="margin-bottom: 14px;">Selecciona la categoría / formato a contar:</p>
         <div class="categoria-grid" id="categoria-grid">
           <!-- generado por JS -->

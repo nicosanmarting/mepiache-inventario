@@ -15,6 +15,7 @@ let _configProductos = [];
 
   poblarSelects();
   await cargarYRenderizar();
+  await cargarYRenderizarEncargados();
 
   document.getElementById('filtro-categoria').addEventListener('change', renderTabla);
   document.getElementById('filtro-sabor').addEventListener('input', renderTabla);
@@ -27,6 +28,14 @@ let _configProductos = [];
     ocultarFormNuevo();
   });
   document.getElementById('btn-crear-producto').addEventListener('click', onCrearProducto);
+
+  document.getElementById('btn-nuevo-encargado').addEventListener('click', () => {
+    document.getElementById('form-nuevo-encargado').style.display = 'block';
+  });
+  document.getElementById('btn-cancelar-nuevo-encargado').addEventListener('click', () => {
+    ocultarFormNuevoEncargado();
+  });
+  document.getElementById('btn-crear-encargado').addEventListener('click', onCrearEncargado);
 })();
 
 function poblarSelects() {
@@ -177,5 +186,99 @@ async function onCrearProducto() {
   } finally {
     btn.disabled = false;
     btn.textContent = 'Crear producto';
+  }
+}
+
+// --------- Encargados de conteo ---------
+
+async function cargarYRenderizarEncargados() {
+  await cargarEncargados();
+  renderTablaEncargados();
+}
+
+function renderTablaEncargados() {
+  const tbody = document.getElementById('tabla-encargados-body');
+  const encargados = getEncargadosTodos()
+    .slice()
+    .sort((a, b) => (a.orden || 0) - (b.orden || 0));
+
+  if (encargados.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4">No hay encargados configurados.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = encargados.map(e => `
+    <tr data-id="${e.id}" class="${e.activo ? '' : 'fila-inactiva'}">
+      <td><input type="text" data-campo="nombre" value="${e.nombre || ''}"></td>
+      <td class="numero"><input type="number" data-campo="orden" value="${e.orden ?? ''}"></td>
+      <td><input type="checkbox" data-campo="activo" ${e.activo ? 'checked' : ''}></td>
+      <td><div class="acciones-tabla"><button class="btn-guardar-fila-encargado">Guardar</button></div></td>
+    </tr>
+  `).join('');
+
+  tbody.querySelectorAll('.btn-guardar-fila-encargado').forEach(btn => {
+    btn.addEventListener('click', (e) => onGuardarFilaEncargado(e.target.closest('tr')));
+  });
+}
+
+async function onGuardarFilaEncargado(tr) {
+  const id = tr.dataset.id;
+  const btn = tr.querySelector('.btn-guardar-fila-encargado');
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  const campos = {};
+  tr.querySelectorAll('[data-campo]').forEach(el => {
+    const campo = el.dataset.campo;
+    campos[campo] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+
+  if (!campos.nombre || !campos.nombre.trim()) {
+    mostrarMensaje('config-mensaje', 'El nombre del encargado no puede estar vacío.', 'error');
+    btn.disabled = false;
+    btn.textContent = original;
+    return;
+  }
+
+  try {
+    await actualizarEncargado(id, campos);
+    await cargarYRenderizarEncargados();
+    mostrarMensaje('config-mensaje', `Encargado "${campos.nombre}" actualizado ✔`, 'exito');
+  } catch (err) {
+    mostrarMensaje('config-mensaje', 'No se pudo guardar el encargado. Intenta nuevamente.', 'error');
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+}
+
+function ocultarFormNuevoEncargado() {
+  document.getElementById('form-nuevo-encargado').style.display = 'none';
+  document.getElementById('ne-nombre').value = '';
+  document.getElementById('ne-mensaje').style.display = 'none';
+}
+
+async function onCrearEncargado() {
+  const nombre = document.getElementById('ne-nombre').value.trim();
+
+  if (!nombre) {
+    mostrarMensaje('ne-mensaje', 'El nombre es obligatorio.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btn-crear-encargado');
+  btn.disabled = true;
+  btn.textContent = 'Creando...';
+
+  try {
+    await crearEncargado(nombre);
+    await cargarYRenderizarEncargados();
+    ocultarFormNuevoEncargado();
+    mostrarMensaje('config-mensaje', `Encargado "${nombre}" creado ✔`, 'exito');
+  } catch (err) {
+    mostrarMensaje('ne-mensaje', 'No se pudo crear el encargado. Intenta nuevamente.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Crear encargado';
   }
 }

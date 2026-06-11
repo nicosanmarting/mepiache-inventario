@@ -660,3 +660,114 @@ footer {
   text-align: center;
   color: #8a7a5c;
 }
+
+/* ---------- Planillas de conteo (impresión) ---------- */
+
+.hoja-pagina {
+  background: #fff;
+  border: 1px solid var(--crema-oscura);
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.hoja-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+  border-bottom: 2px solid var(--negro);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.hoja-titulo {
+  font-family: var(--font-titulo);
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 1.3;
+}
+
+.hoja-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+  min-width: 220px;
+}
+
+.hoja-seccion-titulo {
+  font-size: 16px;
+  margin: 0 0 10px;
+  letter-spacing: 1px;
+}
+
+.hoja-subtitulo {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.hoja-dos-columnas {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.hoja-tabla-col {
+  flex: 1;
+  min-width: 260px;
+}
+
+.tabla-impresion {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+.tabla-impresion th, .tabla-impresion td {
+  border: 1px solid var(--crema-oscura);
+  padding: 6px 8px;
+}
+
+.tabla-impresion thead {
+  background-color: var(--negro);
+  color: var(--crema);
+}
+
+.tabla-impresion td.celda-vacia {
+  min-width: 60px;
+  height: 26px;
+}
+
+@media print {
+  .no-imprimir {
+    display: none !important;
+  }
+
+  .app-header, .app-nav, footer {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  main {
+    padding: 0;
+    max-width: 100%;
+  }
+
+  .hoja-pagina {
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    page-break-after: always;
+  }
+
+  .hoja-pagina:last-child {
+    page-break-after: auto;
+  }
+}

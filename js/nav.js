@@ -77,6 +77,7 @@ async function initLayout(paginaActiva) {
   });
 
   await cargarProductos();
+  await cargarEncargados();
 
   return session;
 }

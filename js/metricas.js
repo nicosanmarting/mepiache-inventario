@@ -32,6 +32,7 @@ async function renderTodo() {
   renderGraficoSalidasCategoria(m);
   renderGraficoMermasMotivo(m);
   renderRanking(m);
+  renderRankingStock();
 }
 
 function calcularVariacion(actual, anterior) {
@@ -264,6 +265,29 @@ function renderRanking(m) {
       <td>${r.producto.nombre}</td>
       <td>${r.producto.categoriaFormato}</td>
       <td class="numero">${r.cantidad}</td>
+    </tr>
+  `).join('');
+}
+
+function renderRankingStock() {
+  const tbody = document.getElementById('tabla-ranking-stock-body');
+  if (!tbody) return;
+
+  const ranking = getProductos()
+    .slice()
+    .sort((a, b) => b.stock - a.stock)
+    .slice(0, 5);
+
+  if (ranking.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="3">Sin productos con stock.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = ranking.map(p => `
+    <tr>
+      <td>${p.nombre}</td>
+      <td>${p.categoriaFormato}</td>
+      <td class="numero">${p.stock}</td>
     </tr>
   `).join('');
 }

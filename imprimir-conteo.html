@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Mepiache | Planillas de conteo</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div id="app-layout">
+    <main>
+
+      <a href="conteo.html" class="volver no-imprimir">&larr; Volver</a>
+
+      <div class="panel-titulo no-imprimir">
+        <h2>Planillas de conteo</h2>
+        <button id="btn-imprimir">Imprimir</button>
+      </div>
+
+      <div class="form-card no-imprimir" style="max-width: 480px;">
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="imp-dia">Día</label>
+            <input type="date" id="imp-dia">
+          </div>
+          <div>
+            <label for="imp-hora">Hora</label>
+            <input type="time" id="imp-hora">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="imp-encargado">Encargado</label>
+          <select id="imp-encargado">
+            <option value="">Sin especificar</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="hoja-impresion">
+        <!-- generado por JS -->
+      </div>
+
+    </main>
+  </div>
+
+  <footer>
+    Sistema de inventario interno · Mepiache
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/imprimir-conteo.js"></script>
+</body>
+</html>

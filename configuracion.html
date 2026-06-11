@@ -112,6 +112,40 @@
         </table>
       </div>
 
+      <div class="panel-titulo" style="margin-top: 28px;">
+        <h2>Encargados de conteo</h2>
+        <button id="btn-nuevo-encargado">+ Nuevo encargado</button>
+      </div>
+
+      <div class="form-card form-card-toggle" id="form-nuevo-encargado" style="display: none; max-width: 360px;">
+        <h3 style="margin-top: 0;">Nuevo encargado</h3>
+        <div class="form-row">
+          <label for="ne-nombre">Nombre</label>
+          <input type="text" id="ne-nombre" placeholder="Ej: Alex">
+        </div>
+        <div class="form-row" style="display: flex; gap: 10px;">
+          <button id="btn-crear-encargado">Crear encargado</button>
+          <button class="secundario" id="btn-cancelar-nuevo-encargado">Cancelar</button>
+        </div>
+        <div class="form-mensaje" id="ne-mensaje"></div>
+      </div>
+
+      <div class="tabla-wrapper">
+        <table class="tabla-config">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th class="numero">Orden</th>
+              <th>Activo</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-encargados-body">
+            <!-- generado por JS -->
+          </tbody>
+        </table>
+      </div>
+
     </main>
   </div>
 
