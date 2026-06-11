@@ -306,6 +306,7 @@ main {
   border: 1px solid var(--crema-oscura);
   border-radius: 10px;
   overflow: hidden;
+  overflow-x: auto;
 }
 
 table {
