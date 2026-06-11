@@ -27,19 +27,19 @@ function renderResumen() {
   const totalGelato = (totalPorCategoria['Gelato Premium Bachas'] || 0) + (totalPorCategoria['Gelato Premium Caja 6x750ml'] || 0);
 
   const cards = [
-    { label: 'Bote 10 L', valor: totalPorCategoria['Bote 10 L'] || 0 },
-    { label: 'Bacha 5 L', valor: totalPorCategoria['Bacha 5 L'] || 0 },
-    { label: 'Paletas (todas)', valor: totalPaletas },
-    { label: 'Gelato Premium', valor: totalGelato },
-    { label: 'Productos con stock bajo', valor: bajoStock, alerta: bajoStock > 0 },
-    { label: 'Productos sin stock', valor: sinStock, alerta: sinStock > 0 },
+    { label: 'Bote 10 L', valor: totalPorCategoria['Bote 10 L'] || 0, href: 'stock.html?categoria=' + encodeURIComponent('Bote 10 L') },
+    { label: 'Bacha 5 L', valor: totalPorCategoria['Bacha 5 L'] || 0, href: 'stock.html?categoria=' + encodeURIComponent('Bacha 5 L') },
+    { label: 'Paletas (todas)', valor: totalPaletas, href: 'stock.html?grupo=paletas' },
+    { label: 'Gelato Premium', valor: totalGelato, href: 'stock.html?grupo=gelato' },
+    { label: 'Productos con stock bajo', valor: bajoStock, alerta: bajoStock > 0, href: 'stock.html?estado=bajo' },
+    { label: 'Productos sin stock', valor: sinStock, alerta: sinStock > 0, href: 'stock.html?estado=sin_stock' },
   ];
 
   document.getElementById('resumen-cards').innerHTML = cards.map(c => `
-    <div class="card ${c.alerta ? 'alerta' : ''}">
+    <a class="card ${c.alerta ? 'alerta' : ''}" href="${c.href}">
       <div class="card-label">${c.label}</div>
       <div class="card-valor">${c.valor}</div>
-    </div>
+    </a>
   `).join('');
 }
 

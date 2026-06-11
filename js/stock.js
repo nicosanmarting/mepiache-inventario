@@ -4,6 +4,15 @@
 
 let _stockEsAdmin = false;
 
+// Grupos de categorías que se pueden filtrar desde los accesos rápidos de Inicio
+// (no corresponden a una sola categoría/formato del selector).
+const GRUPOS_CATEGORIA = {
+  paletas: ['Paletas', 'Mis Paletas'],
+  gelato: ['Gelato Premium Bachas', 'Gelato Premium Caja 6x750ml'],
+};
+
+let _grupoActivo = null;
+
 (async () => {
   const session = await initLayout('stock.html');
   if (!session) return;
@@ -11,14 +20,31 @@ let _stockEsAdmin = false;
   _stockEsAdmin = esAdmin();
 
   poblarFiltroCategoria();
+  aplicarFiltrosDesdeUrl();
   renderResumenCards();
   renderTablaStock();
 
-  document.getElementById('filtro-categoria').addEventListener('change', renderTablaStock);
+  document.getElementById('filtro-categoria').addEventListener('change', () => {
+    _grupoActivo = null;
+    renderTablaStock();
+  });
   document.getElementById('filtro-sabor').addEventListener('input', renderTablaStock);
   document.getElementById('filtro-estado').addEventListener('change', renderTablaStock);
   document.getElementById('btn-exportar-stock').addEventListener('click', exportarStockExcel);
 })();
+
+function aplicarFiltrosDesdeUrl() {
+  const params = new URLSearchParams(window.location.search);
+
+  const categoria = params.get('categoria');
+  if (categoria) document.getElementById('filtro-categoria').value = categoria;
+
+  const estado = params.get('estado');
+  if (estado) document.getElementById('filtro-estado').value = estado;
+
+  const grupo = params.get('grupo');
+  if (grupo && GRUPOS_CATEGORIA[grupo]) _grupoActivo = grupo;
+}
 
 function poblarFiltroCategoria() {
   const sel = document.getElementById('filtro-categoria');
@@ -53,6 +79,7 @@ function productosFiltrados() {
   const estadoFiltro = document.getElementById('filtro-estado').value;
 
   return getProductos()
+    .filter(p => !_grupoActivo || GRUPOS_CATEGORIA[_grupoActivo].includes(p.categoriaFormato))
     .filter(p => !categoria || p.categoriaFormato === categoria)
     .filter(p => !busqueda || p.nombre.toLowerCase().includes(busqueda) || (p.codigo || '').toLowerCase().includes(busqueda))
     .filter(p => !estadoFiltro || estadoStock(p) === estadoFiltro)
