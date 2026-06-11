@@ -17,6 +17,7 @@ let _stockEsAdmin = false;
   document.getElementById('filtro-categoria').addEventListener('change', renderTablaStock);
   document.getElementById('filtro-sabor').addEventListener('input', renderTablaStock);
   document.getElementById('filtro-estado').addEventListener('change', renderTablaStock);
+  document.getElementById('btn-exportar-stock').addEventListener('click', exportarStockExcel);
 })();
 
 function poblarFiltroCategoria() {
@@ -46,18 +47,22 @@ function renderResumenCards() {
   `).join('');
 }
 
-function renderTablaStock() {
-  const tbody = document.getElementById('tabla-stock-body');
-
+function productosFiltrados() {
   const categoria = document.getElementById('filtro-categoria').value;
   const busqueda = document.getElementById('filtro-sabor').value.trim().toLowerCase();
   const estadoFiltro = document.getElementById('filtro-estado').value;
 
-  const productos = getProductos()
+  return getProductos()
     .filter(p => !categoria || p.categoriaFormato === categoria)
     .filter(p => !busqueda || p.nombre.toLowerCase().includes(busqueda) || (p.codigo || '').toLowerCase().includes(busqueda))
     .filter(p => !estadoFiltro || estadoStock(p) === estadoFiltro)
     .sort((a, b) => a.categoriaFormato.localeCompare(b.categoriaFormato) || (a.orden || 0) - (b.orden || 0));
+}
+
+function renderTablaStock() {
+  const tbody = document.getElementById('tabla-stock-body');
+
+  const productos = productosFiltrados();
 
   if (productos.length === 0) {
     tbody.innerHTML = `<tr><td colspan="8">No se encontraron productos con ese filtro.</td></tr>`;
@@ -89,4 +94,24 @@ function renderTablaStock() {
       </tr>
     `;
   }).join('');
+}
+
+function exportarStockExcel() {
+  const productos = productosFiltrados();
+
+  const filas = productos.map(p => ({
+    'Código': p.codigo || '',
+    Sabor: p.nombre,
+    'Categoría/Formato': p.categoriaFormato,
+    'Stock actual': p.stock,
+    'Stock mínimo': p.stockMinimo,
+    Estado: etiquetaEstadoStock(estadoStock(p)),
+    'Última actualización': formatearFechaHora(p.actualizado),
+  }));
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(filas), 'Stock actual');
+
+  const fecha = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(wb, `mepiache-stock-${fecha}.xlsx`);
 }
