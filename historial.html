@@ -18,6 +18,13 @@
         <h2>Historial de movimientos</h2>
       </div>
 
+      <div class="filtros-rapidos" id="filtros-fecha-rapidos">
+        <button type="button" class="secundario" data-rango="hoy">Hoy</button>
+        <button type="button" class="secundario" data-rango="semana">Esta semana</button>
+        <button type="button" class="secundario" data-rango="mes">Este mes</button>
+        <button type="button" class="secundario" data-rango="limpiar">Limpiar fechas</button>
+      </div>
+
       <div class="filtros" id="filtros-historial">
         <div>
           <label for="filtro-desde">Desde</label>
@@ -115,6 +122,7 @@
   <script src="js/data.js"></script>
   <script src="js/nav.js"></script>
   <script src="js/toast.js"></script>
+  <script src="js/ui-helpers.js"></script>
   <script src="js/table-sort.js"></script>
   <script src="js/historial.js"></script>
 </body>

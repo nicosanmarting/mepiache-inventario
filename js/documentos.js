@@ -72,7 +72,7 @@ async function guardarDocumento() {
 
   const btn = document.getElementById('btn-guardar-doc');
   btn.disabled = true;
-  btn.textContent = 'Guardando...';
+  btn.innerHTML = '<span class="spinner"></span> Guardando...';
 
   try {
     const datos = {

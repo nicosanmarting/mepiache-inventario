@@ -18,11 +18,14 @@ const _historialSort = initTableSort('#tabla-historial thead', [
   { tipo: 'texto', accesor: m => m.nota },
 ], () => renderFilas());
 
+const FILTROS_HISTORIAL = ['filtro-desde', 'filtro-hasta', 'filtro-categoria', 'filtro-tipo', 'filtro-sabor'];
+
 (async () => {
   const session = await initLayout('historial.html');
   if (!session) return;
 
   poblarFiltros();
+  restaurarFiltrosDesdeStorage('historial', FILTROS_HISTORIAL);
   await renderTabla();
   await poblarCompararConteos();
 
@@ -30,11 +33,29 @@ const _historialSort = initTableSort('#tabla-historial thead', [
     el.addEventListener('change', renderTabla);
   });
 
+  bindGuardarFiltros('historial', FILTROS_HISTORIAL);
+
+  bindFiltrosFechaRapidos('filtros-fecha-rapidos', 'filtro-desde', 'filtro-hasta', () => {
+    guardarFiltrosEnStorage('historial', FILTROS_HISTORIAL);
+    renderTabla();
+  });
+
   document.getElementById('btn-cargar-mas-historial').addEventListener('click', () => {
     _historialMostrados += HISTORIAL_PAGINA;
     renderFilas();
   });
 })();
+
+function limpiarFiltrosHistorial() {
+  document.getElementById('filtro-desde').value = '';
+  document.getElementById('filtro-hasta').value = '';
+  document.getElementById('filtro-categoria').value = '';
+  document.getElementById('filtro-tipo').value = '';
+  document.getElementById('filtro-sabor').value = '';
+  guardarFiltrosEnStorage('historial', FILTROS_HISTORIAL);
+  _historialMostrados = HISTORIAL_PAGINA;
+  renderTabla();
+}
 
 function poblarFiltros() {
   document.getElementById('filtro-categoria').innerHTML += getCategorias()
@@ -79,7 +100,7 @@ function renderFilas() {
   const btnCargarMas = document.getElementById('btn-cargar-mas-historial');
 
   if (_historialMovimientos.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8">No hay movimientos con ese filtro.</td></tr>`;
+    tbody.innerHTML = htmlEstadoVacioFiltros(8, 'No hay movimientos con ese filtro.', 'limpiarFiltrosHistorial');
     btnCargarMas.style.display = 'none';
     return;
   }

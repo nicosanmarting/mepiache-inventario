@@ -91,9 +91,13 @@ async function onSeleccionarCategoria(categoria, borradorExistente) {
 
   try {
     if (borradorExistente) {
-      const continuar = confirm(
-        `Ya existe un conteo en borrador para "${categoria}" (creado ${formatearFechaHora(borradorExistente.created_at)}).\n\n` +
-        `Aceptar = continuar ese borrador.\nCancelar = empezar un conteo nuevo.`
+      const continuar = await confirmarAccion(
+        `Ya existe un conteo en borrador para "${categoria}" (creado ${formatearFechaHora(borradorExistente.created_at)}).`,
+        {
+          titulo: 'Conteo en borrador existente',
+          textoConfirmar: 'Continuar borrador',
+          textoCancelar: 'Empezar uno nuevo',
+        }
       );
       conteoId = continuar ? borradorExistente.id : await crearConteo(categoria, null, encargado);
     } else {
@@ -196,7 +200,8 @@ function renderTablaConteo() {
         <td data-label="Sabor">${d.producto ? d.producto.nombre : d.producto_id}</td>
         <td class="numero" data-label="Stock sistema">${sistema}</td>
         <td class="numero" data-label="Stock contado">
-          <input type="number" class="input-contado" value="${contado}" ${_conteoFinalizado ? 'disabled' : ''}>
+          <input type="number" class="input-contado" min="0" value="${contado}" ${_conteoFinalizado ? 'disabled' : ''}>
+          <span class="autosave-indicator" data-autosave="${d.id}"></span>
         </td>
         <td class="${diffClase} diferencia-cell" data-label="Diferencia">${diffTexto}</td>
         <td data-label="Observación"><input type="text" class="input-observacion" value="${(d.observacion || '').replace(/"/g, '&quot;')}" ${_conteoFinalizado ? 'disabled' : ''}></td>
@@ -221,6 +226,9 @@ function bindFilaListeners() {
       const sistema = Number(tr.children[2].textContent);
       const cell = tr.querySelector('.diferencia-cell');
 
+      const esNegativo = input.value !== '' && Number(input.value) < 0;
+      input.classList.toggle('campo-invalido', esNegativo);
+
       if (input.value === '') {
         cell.textContent = '';
         cell.className = 'numero diferencia-cell';
@@ -234,6 +242,8 @@ function bindFilaListeners() {
         if (item) item.stock_contado = input.value;
       }
       actualizarProgreso();
+
+      if (item && !esNegativo) programarAutosave(item, tr);
     });
 
     input.addEventListener('keydown', (e) => {
@@ -256,6 +266,7 @@ function bindFilaListeners() {
       const tr = input.closest('tr');
       const item = _conteoDetalleActual.find(d => String(d.id) === String(tr.dataset.detalleId));
       if (item) item.observacion = input.value;
+      if (item) programarAutosave(item, tr);
     });
 
     input.addEventListener('keydown', (e) => {
@@ -276,6 +287,45 @@ function bindFilaListeners() {
   });
 }
 
+// --------- Autoguardado por fila (debounced) ---------
+
+const _autosaveTimers = {};
+
+function programarAutosave(item, tr) {
+  const indicador = tr.querySelector('.autosave-indicator');
+
+  if (indicador) {
+    indicador.textContent = '';
+    indicador.className = 'autosave-indicator';
+  }
+
+  if (_autosaveTimers[item.id]) clearTimeout(_autosaveTimers[item.id]);
+
+  _autosaveTimers[item.id] = setTimeout(async () => {
+    if (indicador) {
+      indicador.textContent = 'Guardando...';
+      indicador.className = 'autosave-indicator guardando visible';
+    }
+
+    try {
+      const stockContado = filaEstaContada(item) ? item.stock_contado : '';
+      const observacion = (item.observacion || '').trim();
+      await guardarConteoDetalle(item.id, { stockContado, observacion });
+
+      if (indicador) {
+        indicador.textContent = 'Guardado ✓';
+        indicador.className = 'autosave-indicator visible';
+        setTimeout(() => indicador.classList.remove('visible'), 1800);
+      }
+    } catch (err) {
+      if (indicador) {
+        indicador.textContent = 'Error al guardar';
+        indicador.className = 'autosave-indicator error visible';
+      }
+    }
+  }, 1500);
+}
+
 function actualizarProgreso() {
   const el = document.getElementById('conteo-progreso');
   if (!el) return;
@@ -291,8 +341,21 @@ async function onGuardar(conteoId, finalizar) {
   const btnFinalizar = document.getElementById('btn-finalizar');
   mensaje.style.display = 'none';
   mensaje.classList.remove('exito', 'error');
+
+  const hayNegativos = _conteoDetalleActual.some(d => filaEstaContada(d) && Number(d.stock_contado) < 0);
+  if (hayNegativos) {
+    mensaje.textContent = 'Hay cantidades contadas negativas. Corrígelas antes de guardar.';
+    mensaje.classList.add('error');
+    mensaje.style.display = 'block';
+    return;
+  }
+
+  const textoBorrador = btnBorrador.textContent;
+  const textoFinalizar = btnFinalizar.textContent;
   btnBorrador.disabled = true;
   btnFinalizar.disabled = true;
+  btnBorrador.innerHTML = `<span class="spinner"></span> ${textoBorrador}`;
+  btnFinalizar.innerHTML = `<span class="spinner"></span> ${textoFinalizar}`;
 
   try {
     // Se guarda desde _conteoDetalleActual (no desde el DOM) para que las
@@ -319,6 +382,8 @@ async function onGuardar(conteoId, finalizar) {
       }, 2500);
       btnBorrador.disabled = false;
       btnFinalizar.disabled = false;
+      btnBorrador.textContent = textoBorrador;
+      btnFinalizar.textContent = textoFinalizar;
     }
   } catch (err) {
     mensaje.textContent = (err && err.message) ? err.message : 'No se pudo guardar el conteo. Intenta de nuevo.';
@@ -326,6 +391,8 @@ async function onGuardar(conteoId, finalizar) {
     mensaje.style.display = 'block';
     btnBorrador.disabled = false;
     btnFinalizar.disabled = false;
+    btnBorrador.textContent = textoBorrador;
+    btnFinalizar.textContent = textoFinalizar;
   }
 }
 

@@ -6,6 +6,7 @@
    =========================== */
 
 let _mpEsAdmin = false;
+const _mpSeleccionadas = new Set();
 
 const _mpSort = initTableSort('#tabla-mp thead', [
   { tipo: 'texto', accesor: mp => mp.categoria },
@@ -37,17 +38,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   poblarSelectsEstaticos();
   bindUI();
+  restaurarFiltrosDesdeStorage('materias-primas', FILTROS_MP);
   aplicarFiltrosDesdeUrl();
   renderResumenCards();
   renderTabla();
   renderMovimientos();
+  bindGuardarFiltros('materias-primas', FILTROS_MP);
 });
+
+const FILTROS_MP = ['filtro-categoria-mp', 'filtro-mp', 'filtro-estado-mp', 'filtro-inactivos-mp'];
 
 function aplicarFiltrosDesdeUrl() {
   const params = new URLSearchParams(window.location.search);
 
   const busqueda = params.get('busqueda');
   if (busqueda) document.getElementById('filtro-mp').value = busqueda;
+}
+
+function limpiarFiltrosMP() {
+  document.getElementById('filtro-categoria-mp').value = '';
+  document.getElementById('filtro-mp').value = '';
+  document.getElementById('filtro-estado-mp').value = '';
+  const filtroInactivos = document.getElementById('filtro-inactivos-mp');
+  if (filtroInactivos) filtroInactivos.checked = false;
+  guardarFiltrosEnStorage('materias-primas', FILTROS_MP);
+  renderTabla();
 }
 
 // --------- UI binding ---------
@@ -57,11 +72,30 @@ function bindUI() {
   document.getElementById('btn-cancelar-movimiento').addEventListener('click', cerrarFormularioMovimiento);
   document.getElementById('btn-guardar-movimiento').addEventListener('click', guardarMovimiento);
   document.getElementById('mp-mov-tipo').addEventListener('change', actualizarFormularioMovimiento);
+  document.getElementById('mp-mov-materia').addEventListener('change', () => limpiarErrorCampo('mp-mov-materia'));
+  document.getElementById('mp-mov-cantidad').addEventListener('input', () => limpiarErrorCampo('mp-mov-cantidad'));
 
   if (_mpEsAdmin) {
     document.getElementById('btn-nueva-mp').addEventListener('click', () => abrirFormularioMP());
     document.getElementById('btn-cancelar-mp').addEventListener('click', cerrarFormularioMP);
     document.getElementById('btn-guardar-mp').addEventListener('click', guardarMateriaPrima);
+    document.getElementById('mp-nombre').addEventListener('input', () => limpiarErrorCampo('mp-nombre'));
+
+    document.getElementById('mp-seleccionar-todas').addEventListener('change', (e) => {
+      document.querySelectorAll('#tabla-mp-body .mp-checkbox').forEach(chk => {
+        chk.checked = e.target.checked;
+        if (e.target.checked) _mpSeleccionadas.add(chk.dataset.id);
+        else _mpSeleccionadas.delete(chk.dataset.id);
+      });
+      actualizarBarraLoteMP();
+    });
+
+    document.getElementById('btn-lote-activar').addEventListener('click', () => aplicarAccionLoteMP(true));
+    document.getElementById('btn-lote-desactivar').addEventListener('click', () => aplicarAccionLoteMP(false));
+    document.getElementById('btn-lote-cancelar').addEventListener('click', () => {
+      _mpSeleccionadas.clear();
+      renderTabla();
+    });
   }
 
   document.getElementById('filtro-categoria-mp').addEventListener('change', renderTabla);
@@ -134,6 +168,7 @@ function abrirFormularioMovimiento(materiaPrimaId = null) {
   document.getElementById('mp-mov-forzar').checked = false;
   actualizarFormularioMovimiento();
   mostrarMensaje('mp-mov-mensaje', '', '');
+  limpiarErroresCampos(['mp-mov-materia', 'mp-mov-cantidad']);
 }
 
 function cerrarFormularioMovimiento() {
@@ -171,20 +206,25 @@ async function guardarMovimiento() {
   const nota = document.getElementById('mp-mov-nota').value.trim();
   const permitirNegativo = document.getElementById('mp-mov-forzar').checked;
 
+  limpiarErroresCampos(['mp-mov-materia', 'mp-mov-cantidad']);
+
+  let valido = true;
   if (!materiaPrimaId) {
-    mostrarMensaje('mp-mov-mensaje', 'Selecciona una materia prima.', 'error');
-    return;
+    mostrarErrorCampo('mp-mov-materia', 'Selecciona una materia prima.');
+    valido = false;
   }
 
   const cantidad = Number(cantidadRaw);
   if (!cantidadRaw || isNaN(cantidad) || cantidad <= 0) {
-    mostrarMensaje('mp-mov-mensaje', 'Ingresa una cantidad válida (mayor que 0).', 'error');
-    return;
+    mostrarErrorCampo('mp-mov-cantidad', 'Ingresa una cantidad válida (mayor que 0).');
+    valido = false;
   }
+
+  if (!valido) return;
 
   const btn = document.getElementById('btn-guardar-movimiento');
   btn.disabled = true;
-  btn.textContent = 'Guardando...';
+  btn.innerHTML = '<span class="spinner"></span> Guardando...';
 
   try {
     await registrarMovimientoMP({
@@ -245,6 +285,7 @@ function abrirFormularioMP(mp = null) {
   document.getElementById('mp-notas').value = mp ? (mp.notas || '') : '';
 
   mostrarMensaje('mp-mensaje', '', '');
+  limpiarErrorCampo('mp-nombre');
 }
 
 function cerrarFormularioMP() {
@@ -267,14 +308,15 @@ async function guardarMateriaPrima() {
   const pedido_promedio = document.getElementById('mp-pedido').value;
   const notas = document.getElementById('mp-notas').value.trim();
 
+  limpiarErrorCampo('mp-nombre');
   if (!nombre) {
-    mostrarMensaje('mp-mensaje', 'El nombre es obligatorio.', 'error');
+    mostrarErrorCampo('mp-nombre', 'El nombre es obligatorio.');
     return;
   }
 
   const btn = document.getElementById('btn-guardar-mp');
   btn.disabled = true;
-  btn.textContent = 'Guardando...';
+  btn.innerHTML = '<span class="spinner"></span> Guardando...';
 
   try {
     const datosComunes = {
@@ -355,16 +397,27 @@ function renderTabla() {
     .sort((a, b) => a.categoria.localeCompare(b.categoria) || (a.orden || 0) - (b.orden || 0)));
 
   const tbody = document.getElementById('tabla-mp-body');
-  const colspan = _mpEsAdmin ? 13 : 8;
+  const colspan = _mpEsAdmin ? 14 : 8;
+
+  // Quita de la selección los ids que ya no están en la lista visible.
+  const idsVisibles = new Set(lista.map(mp => String(mp.id)));
+  Array.from(_mpSeleccionadas).forEach(id => {
+    if (!idsVisibles.has(id)) _mpSeleccionadas.delete(id);
+  });
 
   if (lista.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="${colspan}" class="estado-vacio">No se encontraron materias primas con ese filtro.</td></tr>`;
+    tbody.innerHTML = htmlEstadoVacioFiltros(colspan, 'No se encontraron materias primas con ese filtro.', 'limpiarFiltrosMP');
+    actualizarBarraLoteMP();
     return;
   }
 
   tbody.innerHTML = lista.map(mp => {
     const estado = estadoStockMP(mp);
     const badgeClass = estado === 'sin_stock' ? 'sin' : estado === 'bajo' ? 'bajo' : 'ok';
+
+    const checkboxCol = _mpEsAdmin ? `
+      <td class="col-admin"><input type="checkbox" class="mp-checkbox" data-id="${mp.id}" ${_mpSeleccionadas.has(String(mp.id)) ? 'checked' : ''}></td>
+    ` : '';
 
     const colsAdmin = _mpEsAdmin ? `
       <td class="col-admin">${esc(mp.proveedorNombre || '—')}</td>
@@ -382,6 +435,7 @@ function renderTabla() {
 
     return `
       <tr class="${mp.activo ? '' : 'fila-inactiva'}">
+        ${checkboxCol}
         <td>${esc(mp.categoria)}</td>
         <td>${esc(mp.codigo || '')}</td>
         <td><strong>${esc(mp.nombre)}</strong></td>
@@ -394,6 +448,70 @@ function renderTabla() {
       </tr>
     `;
   }).join('');
+
+  if (_mpEsAdmin) {
+    tbody.querySelectorAll('.mp-checkbox').forEach(chk => {
+      chk.addEventListener('change', () => {
+        if (chk.checked) _mpSeleccionadas.add(chk.dataset.id);
+        else _mpSeleccionadas.delete(chk.dataset.id);
+        actualizarBarraLoteMP();
+      });
+    });
+  }
+
+  actualizarBarraLoteMP();
+}
+
+// --------- Acciones en lote (admin) ---------
+
+function actualizarBarraLoteMP() {
+  if (!_mpEsAdmin) return;
+
+  const barra = document.getElementById('acciones-lote-mp');
+  const contador = document.getElementById('lote-mp-contador');
+  const total = _mpSeleccionadas.size;
+
+  barra.classList.toggle('activo', total > 0);
+  contador.textContent = total === 1 ? '1 seleccionada' : `${total} seleccionadas`;
+
+  const seleccionarTodas = document.getElementById('mp-seleccionar-todas');
+  const checkboxes = document.querySelectorAll('#tabla-mp-body .mp-checkbox');
+  if (checkboxes.length === 0) {
+    seleccionarTodas.checked = false;
+    seleccionarTodas.indeterminate = false;
+  } else {
+    const marcados = Array.from(checkboxes).filter(c => c.checked).length;
+    seleccionarTodas.checked = marcados === checkboxes.length;
+    seleccionarTodas.indeterminate = marcados > 0 && marcados < checkboxes.length;
+  }
+}
+
+async function aplicarAccionLoteMP(activo) {
+  if (!_mpEsAdmin || _mpSeleccionadas.size === 0) return;
+
+  const ids = Array.from(_mpSeleccionadas);
+  const verbo = activo ? 'activar' : 'desactivar';
+
+  const confirmado = await confirmarAccion(
+    `¿${activo ? 'Activar' : 'Desactivar'} ${ids.length} materia${ids.length === 1 ? ' prima' : 's primas'} seleccionada${ids.length === 1 ? '' : 's'}?`,
+    {
+      titulo: activo ? 'Activar materias primas' : 'Desactivar materias primas',
+      textoConfirmar: activo ? 'Activar' : 'Desactivar',
+      tipo: activo ? 'normal' : 'peligro',
+    }
+  );
+  if (!confirmado) return;
+
+  try {
+    await Promise.all(ids.map(id => actualizarMateriaPrima(id, { activo })));
+    mostrarMensaje('lista-mensaje-mp', `Se ${activo ? 'activaron' : 'desactivaron'} ${ids.length} materia${ids.length === 1 ? ' prima' : 's primas'}.`, 'exito');
+    _mpSeleccionadas.clear();
+    poblarSelectMateriaMovimiento();
+    renderResumenCards();
+    renderTabla();
+  } catch (e) {
+    mostrarMensaje('lista-mensaje-mp', `Error al ${verbo} en lote: ` + (e.message || e), 'error');
+  }
 }
 
 // --------- Últimos movimientos ---------

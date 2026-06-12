@@ -21,6 +21,11 @@
   ]);
 
   bindBuscadorGlobal();
+
+  if (new URLSearchParams(window.location.search).get('foco') === 'buscador') {
+    const input = document.getElementById('buscador-global');
+    if (input) input.focus();
+  }
 })();
 
 // --------- Buscador global ---------

@@ -96,7 +96,69 @@ async function initLayout(paginaActiva, { soloAdmin = false } = {}) {
   await cargarMateriasPrimas();
 
   document.body.style.visibility = 'visible';
+
+  initBotonVolverArriba();
+  initBannerConexion();
+  initAtajoBuscador();
+
   return session;
+}
+
+// --------- Botón flotante "Volver arriba" ---------
+
+function initBotonVolverArriba() {
+  const btn = document.createElement('button');
+  btn.id = 'btn-volver-arriba';
+  btn.className = 'btn-volver-arriba';
+  btn.type = 'button';
+  btn.setAttribute('aria-label', 'Volver arriba');
+  btn.textContent = '↑';
+  btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  document.body.appendChild(btn);
+
+  window.addEventListener('scroll', () => {
+    btn.classList.toggle('visible', window.scrollY > 400);
+  });
+}
+
+// --------- Indicador de conexión ---------
+
+function initBannerConexion() {
+  const banner = document.createElement('div');
+  banner.id = 'banner-conexion';
+  banner.className = 'banner-conexion';
+  banner.textContent = 'Sin conexión a internet. Los cambios no se guardarán hasta reconectar.';
+  document.body.appendChild(banner);
+
+  const actualizar = () => banner.classList.toggle('visible', !navigator.onLine);
+  window.addEventListener('online', actualizar);
+  window.addEventListener('offline', actualizar);
+  actualizar();
+}
+
+// --------- Atajo de teclado para el buscador global ---------
+
+function initAtajoBuscador() {
+  document.addEventListener('keydown', (e) => {
+    const esCtrlK = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k';
+    const esSlash = e.key === '/';
+
+    if (!esCtrlK && !esSlash) return;
+
+    const tag = (e.target.tagName || '').toLowerCase();
+    const enCampo = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable;
+    if (esSlash && enCampo) return;
+
+    const input = document.getElementById('buscador-global');
+    if (input) {
+      e.preventDefault();
+      input.focus();
+      input.select();
+    } else if (esCtrlK) {
+      e.preventDefault();
+      window.location.href = 'inicio.html?foco=buscador';
+    }
+  });
 }
 
 // --------- Helpers de formato compartidos ---------

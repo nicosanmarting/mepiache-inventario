@@ -71,7 +71,7 @@ async function guardarTrabajador() {
 
   const btn = document.getElementById('btn-guardar-trabajador');
   btn.disabled = true;
-  btn.textContent = 'Guardando...';
+  btn.innerHTML = '<span class="spinner"></span> Guardando...';
 
   try {
     const datos = { nombre, rut, cargo, fecha_ingreso: fechaIngreso || null, inoperancia };

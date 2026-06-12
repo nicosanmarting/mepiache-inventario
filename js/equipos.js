@@ -91,7 +91,7 @@ async function guardarEquipo() {
 
   const btn = document.getElementById('btn-guardar-equipo');
   btn.disabled = true;
-  btn.textContent = 'Guardando...';
+  btn.innerHTML = '<span class="spinner"></span> Guardando...';
 
   try {
     const datos = { nombre, descripcion, frecuencia_dias };
@@ -266,7 +266,7 @@ async function guardarMantencion() {
 
   const btn = document.getElementById('btn-guardar-mantencion');
   btn.disabled = true;
-  btn.textContent = 'Guardando...';
+  btn.innerHTML = '<span class="spinner"></span> Guardando...';
 
   try {
     let archivo_path = null;
@@ -309,7 +309,12 @@ async function guardarMantencion() {
 }
 
 async function eliminarMantencionUI(id) {
-  if (!confirm('¿Eliminar esta mantención del historial?')) return;
+  const ok = await confirmarAccion('¿Eliminar esta mantención del historial?', {
+    titulo: 'Eliminar mantención',
+    textoConfirmar: 'Eliminar',
+    tipo: 'peligro',
+  });
+  if (!ok) return;
 
   try {
     await eliminarMantencion(id);

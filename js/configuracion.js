@@ -103,7 +103,7 @@ async function onGuardarFila(tr) {
   const btn = tr.querySelector('.btn-guardar-fila');
   const original = btn.textContent;
   btn.disabled = true;
-  btn.textContent = 'Guardando...';
+  btn.innerHTML = '<span class="spinner"></span> Guardando...';
 
   const campos = {};
   tr.querySelectorAll('[data-campo]').forEach(el => {
@@ -173,7 +173,7 @@ async function onCrearProducto() {
 
   const btn = document.getElementById('btn-crear-producto');
   btn.disabled = true;
-  btn.textContent = 'Creando...';
+  btn.innerHTML = '<span class="spinner"></span> Creando...';
 
   try {
     await crearProducto(datos);
@@ -226,7 +226,7 @@ async function onGuardarFilaEncargado(tr) {
   const btn = tr.querySelector('.btn-guardar-fila-encargado');
   const original = btn.textContent;
   btn.disabled = true;
-  btn.textContent = 'Guardando...';
+  btn.innerHTML = '<span class="spinner"></span> Guardando...';
 
   const campos = {};
   tr.querySelectorAll('[data-campo]').forEach(el => {
@@ -270,7 +270,7 @@ async function onCrearEncargado() {
 
   const btn = document.getElementById('btn-crear-encargado');
   btn.disabled = true;
-  btn.textContent = 'Creando...';
+  btn.innerHTML = '<span class="spinner"></span> Creando...';
 
   try {
     await crearEncargado(nombre);

@@ -86,7 +86,7 @@ async function guardarConservadora() {
 
   const btn = document.getElementById('btn-guardar-conservadora');
   btn.disabled = true;
-  btn.textContent = 'Guardando...';
+  btn.innerHTML = '<span class="spinner"></span> Guardando...';
 
   try {
     const datos = {

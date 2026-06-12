@@ -24,6 +24,23 @@
     .form-card.ancho {
       max-width: 640px;
     }
+
+    .acciones-lote-mp {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    body.es-admin .acciones-lote-mp.activo {
+      display: flex;
+    }
+
+    .acciones-lote-mp span {
+      font-size: 13px;
+      color: #8a7a5c;
+    }
   </style>
 </head>
 <body>
@@ -199,11 +216,20 @@
 
       <div class="form-mensaje" id="lista-mensaje-mp"></div>
 
+      <!-- Acciones en lote (solo admin) -->
+      <div class="acciones-lote-mp" id="acciones-lote-mp">
+        <span id="lote-mp-contador">0 seleccionadas</span>
+        <button type="button" class="secundario" id="btn-lote-activar">Activar seleccionadas</button>
+        <button type="button" class="secundario" id="btn-lote-desactivar">Desactivar seleccionadas</button>
+        <button type="button" class="secundario" id="btn-lote-cancelar">Cancelar selección</button>
+      </div>
+
       <!-- Tabla -->
       <div class="tabla-wrapper">
         <table id="tabla-mp">
           <thead>
             <tr>
+              <th class="col-admin"><input type="checkbox" id="mp-seleccionar-todas" title="Seleccionar todas"></th>
               <th>Categoría</th>
               <th>Código</th>
               <th>Nombre</th>
@@ -220,7 +246,7 @@
             </tr>
           </thead>
           <tbody id="tabla-mp-body">
-            <tr><td colspan="13" class="estado-vacio">Cargando...</td></tr>
+            <tr><td colspan="14" class="estado-vacio">Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -257,6 +283,7 @@
   <script src="js/data.js"></script>
   <script src="js/nav.js"></script>
   <script src="js/toast.js"></script>
+  <script src="js/ui-helpers.js"></script>
   <script src="js/combobox.js"></script>
   <script src="js/table-sort.js"></script>
   <script src="js/materias-primas.js"></script>

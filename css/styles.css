@@ -326,6 +326,18 @@ a.card:hover {
   min-width: 140px;
 }
 
+.filtros-rapidos {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.filtros-rapidos button {
+  padding: 7px 14px;
+  font-size: 13px;
+}
+
 .tabla-wrapper {
   background: #fff;
   border: 1px solid var(--crema-oscura);
@@ -1138,4 +1150,200 @@ footer {
   .hoja-pagina:last-child {
     page-break-after: auto;
   }
+}
+
+/* ---------- Spinner en botones ---------- */
+
+.spinner {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(12, 12, 12, 0.25);
+  border-top-color: var(--negro);
+  border-radius: 50%;
+  animation: spinner-girar 0.6s linear infinite;
+  vertical-align: middle;
+  margin-right: 2px;
+}
+
+button.secundario .spinner,
+.btn.secundario .spinner {
+  border-color: rgba(12, 12, 12, 0.2);
+  border-top-color: var(--negro);
+}
+
+@keyframes spinner-girar {
+  to { transform: rotate(360deg); }
+}
+
+button[disabled], .btn[disabled] {
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+/* ---------- Modal de confirmación ---------- */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(12, 12, 12, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  padding: 16px;
+}
+
+.modal-overlay.mostrar {
+  opacity: 1;
+}
+
+.modal-dialogo {
+  background-color: var(--crema-suave);
+  border-radius: 10px;
+  padding: 24px;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(12, 12, 12, 0.3);
+  transform: translateY(10px) scale(0.98);
+  transition: transform 0.18s ease;
+}
+
+.modal-overlay.mostrar .modal-dialogo {
+  transform: translateY(0) scale(1);
+}
+
+.modal-dialogo h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.modal-dialogo p {
+  margin: 0 0 20px;
+  color: var(--negro);
+  line-height: 1.4;
+}
+
+.modal-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+button.peligro, .btn.peligro {
+  background-color: #b3261e;
+  color: #fff;
+}
+
+button.peligro:hover, .btn.peligro:hover {
+  background-color: #8f1e18;
+}
+
+@media (max-width: 480px) {
+  .modal-acciones {
+    flex-direction: column-reverse;
+  }
+
+  .modal-acciones button {
+    width: 100%;
+  }
+}
+
+/* ---------- Botón flotante "Volver arriba" ---------- */
+
+.btn-volver-arriba {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(12, 12, 12, 0.25);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+  z-index: 900;
+}
+
+.btn-volver-arriba.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+@media (max-width: 700px) {
+  .btn-volver-arriba {
+    right: 14px;
+    bottom: 80px;
+  }
+}
+
+/* ---------- Banner de conexión ---------- */
+
+.banner-conexion {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #b3261e;
+  color: #fff;
+  text-align: center;
+  font-size: 13px;
+  font-weight: bold;
+  padding: 8px 12px;
+  z-index: 1200;
+  transform: translateY(-100%);
+  transition: transform 0.25s ease;
+}
+
+.banner-conexion.visible {
+  transform: translateY(0);
+}
+
+/* ---------- Validación inline de formularios ---------- */
+
+.campo-invalido {
+  border-color: #b3261e !important;
+  outline-color: #b3261e !important;
+}
+
+.campo-error {
+  display: block;
+  color: #b3261e;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+/* ---------- Indicador de autoguardado (conteo) ---------- */
+
+.autosave-indicator {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  color: #6b8f5a;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.autosave-indicator.visible {
+  opacity: 1;
+}
+
+.autosave-indicator.guardando {
+  color: #8a7a5c;
+}
+
+.autosave-indicator.error {
+  color: #b3261e;
 }

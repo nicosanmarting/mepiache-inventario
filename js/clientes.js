@@ -57,7 +57,7 @@ async function guardarCliente() {
 
   const btn = document.getElementById('btn-guardar-cliente');
   btn.disabled = true;
-  btn.textContent = 'Guardando...';
+  btn.innerHTML = '<span class="spinner"></span> Guardando...';
 
   try {
     const datos = { nombre, contacto_telefono, contacto_email };

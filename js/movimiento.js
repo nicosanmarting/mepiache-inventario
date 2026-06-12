@@ -41,7 +41,27 @@ function initMovimientoPage({ paginaActiva, tipoMovimiento, motivos, mensajeExit
     await renderUltimosMovimientos();
 
     document.getElementById('form-movimiento').addEventListener('submit', onSubmit);
+
+    document.getElementById('mov-producto').addEventListener('change', () => limpiarErrorCampo('mov-producto'));
+    document.getElementById('mov-cantidad').addEventListener('input', () => limpiarErrorCampo('mov-cantidad'));
   })();
+
+  function validarFormulario({ productoId, cantidad }) {
+    limpiarErroresCampos(['mov-producto', 'mov-cantidad']);
+    let valido = true;
+
+    if (!productoId) {
+      mostrarErrorCampo('mov-producto', 'Selecciona un sabor.');
+      valido = false;
+    }
+
+    if (!cantidad || isNaN(cantidad) || cantidad <= 0) {
+      mostrarErrorCampo('mov-cantidad', 'Ingresa una cantidad mayor a 0.');
+      valido = false;
+    }
+
+    return valido;
+  }
 
   function poblarCategorias() {
     const sel = document.getElementById('mov-categoria');
@@ -114,6 +134,14 @@ function initMovimientoPage({ paginaActiva, tipoMovimiento, motivos, mensajeExit
     const clienteEl = mostrarCliente ? document.getElementById('mov-cliente') : null;
     const clienteId = clienteEl ? (clienteEl.value || null) : null;
 
+    if (!validarFormulario({ productoId, cantidad })) {
+      btn.disabled = false;
+      return;
+    }
+
+    const textoOriginal = btn.textContent;
+    btn.innerHTML = `<span class="spinner"></span> ${textoOriginal}`;
+
     try {
       await registrarMovimiento({ productoId, tipoMovimiento, cantidad, motivo, nota, fecha, permitirNegativo, clienteId });
 
@@ -140,6 +168,7 @@ function initMovimientoPage({ paginaActiva, tipoMovimiento, motivos, mensajeExit
       mensaje.style.display = 'block';
     } finally {
       btn.disabled = false;
+      btn.textContent = textoOriginal;
     }
   }
 

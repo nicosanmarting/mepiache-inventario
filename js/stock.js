@@ -13,6 +13,8 @@ const GRUPOS_CATEGORIA = {
 
 let _grupoActivo = null;
 
+const FILTROS_STOCK = ['filtro-categoria', 'filtro-sabor', 'filtro-estado'];
+
 const _stockSort = initTableSort('#tabla-stock thead', [
   { tipo: 'texto', accesor: p => p.codigo },
   { tipo: 'texto', accesor: p => p.nombre },
@@ -31,6 +33,7 @@ const _stockSort = initTableSort('#tabla-stock thead', [
   _stockEsAdmin = esAdmin();
 
   poblarFiltroCategoria();
+  restaurarFiltrosDesdeStorage('stock', FILTROS_STOCK);
   aplicarFiltrosDesdeUrl();
   renderResumenCards();
   renderTablaStock();
@@ -42,6 +45,7 @@ const _stockSort = initTableSort('#tabla-stock thead', [
   document.getElementById('filtro-sabor').addEventListener('input', renderTablaStock);
   document.getElementById('filtro-estado').addEventListener('change', renderTablaStock);
   document.getElementById('btn-exportar-stock').addEventListener('click', exportarStockExcel);
+  bindGuardarFiltros('stock', FILTROS_STOCK);
 })();
 
 function aplicarFiltrosDesdeUrl() {
@@ -58,6 +62,15 @@ function aplicarFiltrosDesdeUrl() {
 
   const busqueda = params.get('busqueda');
   if (busqueda) document.getElementById('filtro-sabor').value = busqueda;
+}
+
+function limpiarFiltrosStock() {
+  document.getElementById('filtro-categoria').value = '';
+  document.getElementById('filtro-sabor').value = '';
+  document.getElementById('filtro-estado').value = '';
+  _grupoActivo = null;
+  guardarFiltrosEnStorage('stock', FILTROS_STOCK);
+  renderTablaStock();
 }
 
 function poblarFiltroCategoria() {
@@ -106,7 +119,7 @@ function renderTablaStock() {
   const productos = _stockSort.ordenar(productosFiltrados());
 
   if (productos.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8">No se encontraron productos con ese filtro.</td></tr>`;
+    tbody.innerHTML = htmlEstadoVacioFiltros(8, 'No se encontraron productos con ese filtro.', 'limpiarFiltrosStock');
     return;
   }
 
