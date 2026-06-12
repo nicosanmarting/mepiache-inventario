@@ -15,10 +15,64 @@
 
   await renderResumen();
   await Promise.all([
+    renderAlertasCriticas(),
     renderUltimoConteo(),
     renderUltimosMovimientos(),
   ]);
 })();
+
+// Tabla de productos y materias primas bajo stock mínimo o sin stock,
+// ordenados por urgencia (sin stock primero).
+async function renderAlertasCriticas() {
+  const tbody = document.getElementById('tabla-alertas-body');
+  if (!tbody) return;
+
+  const productos = getProductos()
+    .filter(p => estadoStock(p) !== 'ok')
+    .map(p => ({
+      tipo: 'Producto',
+      nombre: p.nombre,
+      categoria: p.categoriaFormato,
+      stock: p.stock,
+      stockMinimo: p.stockMinimo,
+      unidad: p.unidadConteo || '',
+      estado: estadoStock(p),
+    }));
+
+  const materias = getMateriasPrimas()
+    .filter(mp => mp.activo && estadoStockMP(mp) !== 'ok')
+    .map(mp => ({
+      tipo: 'Materia prima',
+      nombre: mp.nombre,
+      categoria: mp.categoria,
+      stock: mp.stock,
+      stockMinimo: mp.stockMinimo,
+      unidad: mp.unidadMedida || '',
+      estado: estadoStockMP(mp),
+    }));
+
+  const orden = { sin_stock: 0, bajo: 1 };
+  const items = [...productos, ...materias].sort((a, b) => orden[a.estado] - orden[b.estado]);
+
+  if (items.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6">Sin alertas: todo el stock está dentro de lo normal. ✔</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = items.map(it => {
+    const badgeClass = it.estado === 'sin_stock' ? 'sin' : 'bajo';
+    return `
+      <tr>
+        <td>${it.tipo}</td>
+        <td>${it.nombre}</td>
+        <td>${it.categoria}</td>
+        <td class="numero">${it.stock} ${it.unidad}</td>
+        <td class="numero">${it.stockMinimo} ${it.unidad}</td>
+        <td><span class="badge ${badgeClass}">${etiquetaEstadoStock(it.estado)}</span></td>
+      </tr>
+    `;
+  }).join('');
+}
 
 async function renderResumen() {
   const { totalPorCategoria, bajoStock, sinStock } = getResumenStock();
