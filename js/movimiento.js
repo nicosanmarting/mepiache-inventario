@@ -8,14 +8,8 @@
 
 function initMovimientoPage({ paginaActiva, tipoMovimiento, motivos, mensajeExito, soloAdmin, permitirNegativoOpcion }) {
   (async () => {
-    const session = await initLayout(paginaActiva);
+    const session = await initLayout(paginaActiva, { soloAdmin: !!soloAdmin });
     if (!session) return;
-
-    if (soloAdmin && !esAdmin()) {
-      const main = document.querySelector('#app-layout main');
-      main.innerHTML = `<div class="estado-vacio">Esta pantalla está disponible solo para administradores.</div>`;
-      return;
-    }
 
     poblarCategorias();
     poblarMotivos();

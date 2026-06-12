@@ -11,13 +11,8 @@ let _trabajadores = [];
 // --------- Init ---------
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const sesion = await initLayout('trabajadores.html');
+  const sesion = await initLayout('trabajadores.html', { soloAdmin: true });
   if (!sesion) return;
-
-  if (!esAdmin()) {
-    window.location.href = 'inicio.html';
-    return;
-  }
 
   bindUI();
   await cargarTrabajadores();

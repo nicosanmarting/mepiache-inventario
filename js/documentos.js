@@ -10,13 +10,8 @@ let _documentos = [];
 // --------- Init ---------
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const sesion = await initLayout('documentos.html');
+  const sesion = await initLayout('documentos.html', { soloAdmin: true });
   if (!sesion) return;
-
-  if (!esAdmin()) {
-    window.location.href = 'inicio.html';
-    return;
-  }
 
   bindUI();
   await cargarDocumentos();
