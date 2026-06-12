@@ -341,11 +341,22 @@ async function getMovimientos({ limite = 50, productoId = null, tipoMovimiento =
 // --------- Conteos ---------
 
 async function crearConteo(categoriaFormato, observacion, encargado) {
-  const { data, error } = await supabaseClient.rpc('crear_conteo', {
+  let { data, error } = await supabaseClient.rpc('crear_conteo', {
     p_categoria_formato: categoriaFormato,
     p_observacion: observacion || null,
     p_encargado: encargado || null,
   });
+
+  // Si la BD aún no tiene la migración v4 (función crear_conteo sin
+  // p_encargado), reintentar con la firma anterior para no romper el flujo.
+  if (error && error.code === 'PGRST202') {
+    console.warn('crear_conteo sin soporte para encargado (falta migration_v4_encargados.sql). Reintentando sin encargado.');
+    ({ data, error } = await supabaseClient.rpc('crear_conteo', {
+      p_categoria_formato: categoriaFormato,
+      p_observacion: observacion || null,
+    }));
+  }
+
   if (error) {
     console.error('Error creando conteo:', error);
     throw error;
@@ -398,17 +409,31 @@ async function finalizarConteo(conteoId) {
   await cargarProductos();
 }
 
+// Columna `encargado` solo existe si se ejecutó migration_v4_encargados.sql.
+// Si la primera consulta falla por columna inexistente (42703), se reintenta sin ella.
+let _conteosTieneEncargado = true;
+
 async function getConteos({ limite = 20, categoriaFormato = null, estado = null } = {}) {
+  const campos = _conteosTieneEncargado
+    ? 'id, categoria_formato, usuario_id, estado, observacion, encargado, created_at, finalized_at'
+    : 'id, categoria_formato, usuario_id, estado, observacion, created_at, finalized_at';
+
   let query = supabaseClient
     .from('conteos')
-    .select('id, categoria_formato, usuario_id, estado, observacion, encargado, created_at, finalized_at')
+    .select(campos)
     .order('created_at', { ascending: false })
     .limit(limite);
 
   if (categoriaFormato) query = query.eq('categoria_formato', categoriaFormato);
   if (estado) query = query.eq('estado', estado);
 
-  const { data, error } = await query;
+  let { data, error } = await query;
+
+  if (error && error.code === '42703' && _conteosTieneEncargado) {
+    _conteosTieneEncargado = false;
+    return getConteos({ limite, categoriaFormato, estado });
+  }
+
   if (error) {
     console.error('Error cargando conteos:', error);
     return [];
@@ -437,16 +462,27 @@ async function getTodoConteoDetalle() {
 }
 
 async function getConteoPorId(conteoId) {
-  const { data, error } = await supabaseClient
+  const campos = _conteosTieneEncargado
+    ? 'id, categoria_formato, usuario_id, estado, observacion, encargado, created_at, finalized_at'
+    : 'id, categoria_formato, usuario_id, estado, observacion, created_at, finalized_at';
+
+  let { data, error } = await supabaseClient
     .from('conteos')
-    .select('id, categoria_formato, usuario_id, estado, observacion, encargado, created_at, finalized_at')
+    .select(campos)
     .eq('id', conteoId)
     .single();
+
+  if (error && error.code === '42703' && _conteosTieneEncargado) {
+    _conteosTieneEncargado = false;
+    return getConteoPorId(conteoId);
+  }
 
   if (error) {
     console.error('Error cargando conteo:', error);
     return null;
   }
+
+  if (!_conteosTieneEncargado) data.encargado = null;
   return data;
 }
 

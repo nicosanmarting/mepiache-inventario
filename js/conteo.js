@@ -83,14 +83,23 @@ async function onSeleccionarCategoria(categoria, borradorExistente) {
   const sel = document.getElementById('select-encargado');
   const encargado = sel ? (sel.value || null) : null;
 
-  if (borradorExistente) {
-    const continuar = confirm(
-      `Ya existe un conteo en borrador para "${categoria}" (creado ${formatearFechaHora(borradorExistente.created_at)}).\n\n` +
-      `Aceptar = continuar ese borrador.\nCancelar = empezar un conteo nuevo.`
+  try {
+    if (borradorExistente) {
+      const continuar = confirm(
+        `Ya existe un conteo en borrador para "${categoria}" (creado ${formatearFechaHora(borradorExistente.created_at)}).\n\n` +
+        `Aceptar = continuar ese borrador.\nCancelar = empezar un conteo nuevo.`
+      );
+      conteoId = continuar ? borradorExistente.id : await crearConteo(categoria, null, encargado);
+    } else {
+      conteoId = await crearConteo(categoria, null, encargado);
+    }
+  } catch (err) {
+    alert(
+      'No se pudo crear el conteo.\n\n' +
+      ((err && err.message) ? err.message : 'Error desconocido.') +
+      '\n\nSi el error menciona "crear_conteo" o "encargado", probablemente falta ejecutar sql/migration_v4_encargados.sql en Supabase.'
     );
-    conteoId = continuar ? borradorExistente.id : await crearConteo(categoria, null, encargado);
-  } else {
-    conteoId = await crearConteo(categoria, null, encargado);
+    return;
   }
 
   history.replaceState(null, '', `conteo.html?id=${conteoId}`);
