@@ -610,6 +610,73 @@ async function actualizarTrabajador(id, campos) {
   }
 }
 
+// --------- Conservadoras (admin) ---------
+
+async function getConservadoras() {
+  const { data, error } = await supabaseClient
+    .from('conservadoras')
+    .select('id, codigo, modelo, cliente_nombre, contacto_telefono, contacto_email, ubicacion, fecha_entrega, estado, notas, activo, created_at')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error cargando conservadoras:', error);
+    return [];
+  }
+  return data;
+}
+
+async function crearConservadora(datos) {
+  const payload = {
+    codigo: datos.codigo || null,
+    modelo: datos.modelo || null,
+    cliente_nombre: datos.cliente_nombre,
+    contacto_telefono: datos.contacto_telefono || null,
+    contacto_email: datos.contacto_email || null,
+    ubicacion: datos.ubicacion || null,
+    fecha_entrega: datos.fecha_entrega || null,
+    estado: datos.estado || 'en_uso',
+    notas: datos.notas || null,
+    activo: true,
+  };
+
+  const { data, error } = await supabaseClient
+    .from('conservadoras')
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creando conservadora:', error);
+    throw error;
+  }
+  return data;
+}
+
+async function actualizarConservadora(id, campos) {
+  const payload = { updated_at: new Date().toISOString() };
+
+  if ('codigo' in campos) payload.codigo = campos.codigo || null;
+  if ('modelo' in campos) payload.modelo = campos.modelo || null;
+  if ('cliente_nombre' in campos) payload.cliente_nombre = campos.cliente_nombre;
+  if ('contacto_telefono' in campos) payload.contacto_telefono = campos.contacto_telefono || null;
+  if ('contacto_email' in campos) payload.contacto_email = campos.contacto_email || null;
+  if ('ubicacion' in campos) payload.ubicacion = campos.ubicacion || null;
+  if ('fecha_entrega' in campos) payload.fecha_entrega = campos.fecha_entrega || null;
+  if ('estado' in campos) payload.estado = campos.estado;
+  if ('notas' in campos) payload.notas = campos.notas || null;
+  if ('activo' in campos) payload.activo = !!campos.activo;
+
+  const { error } = await supabaseClient
+    .from('conservadoras')
+    .update(payload)
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error actualizando conservadora:', error);
+    throw error;
+  }
+}
+
 // --------- Métricas mensuales (basadas en movimientos_inventario) ---------
 
 const NOMBRES_MES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];

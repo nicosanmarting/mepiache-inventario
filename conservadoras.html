@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Mepiache | Conservadoras</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .badge.en_uso     { background-color: #e3f3e1; color: #2e7d32; }
+    .badge.mantencion { background-color: #fdf0d8; color: #b9770e; }
+    .badge.devuelta   { background-color: #f0f0f0; color: #666; }
+
+    .notas-cell {
+      max-width: 220px;
+      white-space: pre-wrap;
+      font-size: 13px;
+    }
+
+    .contacto-cell {
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .contacto-cell div + div {
+      margin-top: 2px;
+      color: #8a7a5c;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app-layout">
+    <main>
+
+      <a href="inicio.html" class="volver">&larr; Inicio</a>
+
+      <div class="panel-titulo">
+        <h2>Conservadoras</h2>
+        <button id="btn-nueva-conservadora">+ Nueva conservadora</button>
+      </div>
+
+      <!-- Formulario: nueva / editar conservadora -->
+      <div class="form-card form-card-toggle" id="form-conservadora" style="display: none; max-width: 100%;">
+        <h3 id="form-titulo" style="margin-top: 0;">Nueva conservadora</h3>
+        <input type="hidden" id="c-id">
+
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="c-codigo">Código / número de serie</label>
+            <input type="text" id="c-codigo" placeholder="Ej: CONS-014">
+          </div>
+          <div>
+            <label for="c-modelo">Modelo</label>
+            <input type="text" id="c-modelo" placeholder="Ej: Frigidaire FFC-09">
+          </div>
+        </div>
+
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="c-cliente">Cliente *</label>
+            <input type="text" id="c-cliente" placeholder="Ej: Minimarket Los Aromos">
+          </div>
+          <div>
+            <label for="c-ubicacion">Ubicación</label>
+            <input type="text" id="c-ubicacion" placeholder="Ej: Av. Principal 123, Curicó">
+          </div>
+        </div>
+
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="c-telefono">Teléfono de contacto</label>
+            <input type="text" id="c-telefono" placeholder="Ej: +56 9 1234 5678">
+          </div>
+          <div>
+            <label for="c-email">Email de contacto</label>
+            <input type="email" id="c-email" placeholder="Ej: contacto@cliente.cl">
+          </div>
+        </div>
+
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="c-fecha-entrega">Fecha de entrega</label>
+            <input type="date" id="c-fecha-entrega">
+          </div>
+          <div>
+            <label for="c-estado">Estado</label>
+            <select id="c-estado">
+              <option value="en_uso">En uso</option>
+              <option value="mantencion">En mantención</option>
+              <option value="devuelta">Devuelta</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="c-notas">Notas</label>
+          <textarea id="c-notas" rows="3" style="width:100%; padding:10px 12px; border:1px solid var(--crema-oscura); border-radius:6px; font-size:14px; font-family:var(--font-cuerpo); background:var(--crema-suave); resize:vertical;" placeholder="Ej: Equipo entregado en comodato, retirar si cliente cierra local."></textarea>
+        </div>
+
+        <div class="form-row" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <button id="btn-guardar-conservadora">Guardar</button>
+          <button class="secundario" id="btn-cancelar-conservadora">Cancelar</button>
+        </div>
+        <div class="form-mensaje" id="c-mensaje"></div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filtros">
+        <input type="text" id="filtro-cliente" placeholder="Buscar por cliente, código o ubicación...">
+        <select id="filtro-estado">
+          <option value="">Todos los estados</option>
+          <option value="en_uso">En uso</option>
+          <option value="mantencion">En mantención</option>
+          <option value="devuelta">Devuelta</option>
+        </select>
+        <div class="form-row checkbox" style="margin-bottom: 0;">
+          <input type="checkbox" id="filtro-inactivos">
+          <label for="filtro-inactivos">Mostrar inactivas</label>
+        </div>
+      </div>
+
+      <div class="form-mensaje" id="lista-mensaje"></div>
+
+      <!-- Tabla de conservadoras -->
+      <div class="tabla-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Modelo</th>
+              <th>Cliente</th>
+              <th>Ubicación</th>
+              <th>Contacto</th>
+              <th>Fecha entrega</th>
+              <th>Estado</th>
+              <th>Notas</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-conservadoras-body">
+            <tr><td colspan="9" class="estado-vacio">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+  <footer>
+    Sistema de inventario interno · Mepiache
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/conservadoras.js"></script>
+</body>
+</html>
