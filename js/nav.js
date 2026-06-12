@@ -31,6 +31,7 @@ const NAV_LINKS = [
   { href: 'metricas.html', label: 'Métricas', admin: true },
   { href: 'historial.html', label: 'Historial' },
   { href: 'configuracion.html', label: 'Configuración', admin: true },
+  { href: 'trabajadores.html', label: 'Trabajadores', admin: true },
 ];
 
 let _sesionActual = null;

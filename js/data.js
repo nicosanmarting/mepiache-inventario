@@ -486,6 +486,67 @@ async function getConteoPorId(conteoId) {
   return data;
 }
 
+// --------- Trabajadores (admin) ---------
+
+async function getTrabajadores() {
+  const { data, error } = await supabaseClient
+    .from('trabajadores')
+    .select('id, nombre, rut, cargo, fecha_ingreso, inoperancia, contrato_path, contrato_nombre, activo, created_at')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error cargando trabajadores:', error);
+    return [];
+  }
+  return data;
+}
+
+async function crearTrabajador(datos) {
+  const payload = {
+    nombre: datos.nombre,
+    rut: datos.rut || null,
+    cargo: datos.cargo || null,
+    fecha_ingreso: datos.fecha_ingreso || null,
+    inoperancia: datos.inoperancia || null,
+    activo: true,
+  };
+
+  const { data, error } = await supabaseClient
+    .from('trabajadores')
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creando trabajador:', error);
+    throw error;
+  }
+  return data;
+}
+
+async function actualizarTrabajador(id, campos) {
+  const payload = { updated_at: new Date().toISOString() };
+
+  if ('nombre' in campos) payload.nombre = campos.nombre;
+  if ('rut' in campos) payload.rut = campos.rut || null;
+  if ('cargo' in campos) payload.cargo = campos.cargo || null;
+  if ('fecha_ingreso' in campos) payload.fecha_ingreso = campos.fecha_ingreso || null;
+  if ('inoperancia' in campos) payload.inoperancia = campos.inoperancia || null;
+  if ('contrato_path' in campos) payload.contrato_path = campos.contrato_path || null;
+  if ('contrato_nombre' in campos) payload.contrato_nombre = campos.contrato_nombre || null;
+  if ('activo' in campos) payload.activo = !!campos.activo;
+
+  const { error } = await supabaseClient
+    .from('trabajadores')
+    .update(payload)
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error actualizando trabajador:', error);
+    throw error;
+  }
+}
+
 // --------- Métricas mensuales (basadas en movimientos_inventario) ---------
 
 const NOMBRES_MES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
