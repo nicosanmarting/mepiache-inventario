@@ -1,16 +1,21 @@
-# Plan de expansión: Sustancias, Materias Primas, Trabajadores, Conservadoras y Clientes
+# Plan de expansión: Sustancias, Trabajadores y Conservadoras
 
 > Análisis + plan de acción + crítica. No implementado todavía — esto es la base para decidir antes de escribir código/SQL.
 
-## 1. Alcance solicitado
+## 0. Corrección de alcance (vs. versión anterior de este plan)
 
-1. Inventario de **sustancias** (químicos/sanitizantes) — igual mecánica que el inventario de helados.
-2. Inventario de **materias primas** (insumos de producción: leche, azúcar, saborizantes, etc.).
-3. **Listado de trabajadores**: ficha de cada uno + contrato en PDF descargable.
-4. **Inventario de conservadoras**: equipos entregados a clientes en distintas ubicaciones, con datos de contacto.
-5. **Clientes frecuentes**: catálogo de clientes, conectado opcionalmente con Venta/salida ("vendido a tal cliente").
+- **"Sustancias" NO son químicos/sanitizantes** — es **otro producto comestible** que vende Mepiache, con **4 tipos** y **2 formatos de venta** cada uno (8 combinaciones, igual lógica que Helados/Paletas/Gelato hoy). Catálogo pendiente: Nico lo entrega mañana.
+- Dado que es "lo mismo que ya existe pero con otro catálogo", **no necesita arquitectura nueva** — es extender `productos`/`categoria_formato` con las nuevas categorías y cargar el catálogo, igual que se hizo en `migration_v2_inventario.sql`. Se retoma apenas llegue la info.
+- **Materias primas y "Clientes frecuentes" como módulo propio quedan fuera del alcance inmediato** (no se mencionaron en el último mensaje). Se pueden retomar después si hace falta.
+- **Bajo "admin" el alcance confirmado ahora es**: Listado de trabajadores (con contrato PDF) e Inventario de conservadoras.
 
-Todo esto detrás del flag `admin` (igual que Métricas/Configuración hoy).
+## 1. Alcance solicitado (actualizado)
+
+1. **Sustancias** (producto comestible, 4 tipos x 2 formatos) — extensión de catálogo, pendiente de info (mañana).
+2. **Listado de trabajadores**: ficha de cada uno + contrato en PDF descargable. (admin)
+3. **Inventario de conservadoras**: equipos entregados a clientes en distintas ubicaciones, con datos de contacto. (admin)
+
+Todo esto detrás del flag `admin` (igual que Métricas/Configuración hoy), salvo el catálogo de Sustancias que es parte del inventario operativo normal.
 
 ---
 
@@ -22,20 +27,15 @@ Todo esto detrás del flag `admin` (igual que Métricas/Configuración hoy).
 
 ---
 
-## 3. Decisión de arquitectura: un motor, varios "almacenes" (no 3 sistemas paralelos)
+## 3. Sustancias: extensión simple del catálogo existente
 
-**Crítica clave**: la tentación es clonar el patrón de `productos`/`conteos`/`movimientos` tres veces (helados, sustancias, materias primas). Eso triplica código, triplica bugs y triplica mantención cada vez que se agregue una función nueva (ej. el fix de "encargados" que hicimos hoy habría que aplicarlo 3 veces).
+Como "Sustancias" es **otro producto comestible** con 4 tipos x 2 formatos (8 combinaciones), encaja directo en el modelo actual: es lo mismo que se hizo en `migration_v2_inventario.sql` al cargar los 115 productos de Helados/Paletas/Gelato.
 
-**Mejor enfoque**: extender las tablas existentes con una columna `tipo_item` (`'producto_terminado' | 'sustancia' | 'materia_prima'`) y reusar `movimientos_inventario`, `conteos`, `conteo_detalle` y las 3 funciones RPC tal cual — ya son genéricas (trabajan sobre `producto_id`, no saben de helados).
+Cuando llegue el catálogo (mañana), el trabajo es:
+1. `migration_v5_sustancias.sql`: agregar las nuevas categorías a `productos_categoria_formato_check` (ej. `'Sustancia Formato A'`, `'Sustancia Formato B'` — nombres reales según el catálogo) y `insert into productos (...)` con los SKUs nuevos (igual estructura: código, nombre, sabor/variante, categoria_formato, unidad_conteo, contenido, stock_actual=0, stock_minimo, orden).
+2. Como `conteo.js`, `stock.js`, `metricas.js`, `configuracion.js` ya leen `getCategorias()`/`getProductosPorCategoria()` de forma genérica, **las nuevas categorías aparecen solas** en Nuevo conteo, Stock actual, Métricas y Configuración — sin tocar código, salvo quizás la planilla imprimible (`imprimir-conteo.js`) si se quiere una hoja con el formato físico de esas planillas también.
 
-Lo que sí difiere por tipo:
-- **Sustancias**: agregar columnas opcionales `ficha_seguridad_url` (link a hoja de seguridad/SDS), `tipo_sustancia` (detergente, sanitizante, plaguicida, etc.), `fecha_vencimiento`.
-- **Materias primas**: agregar `proveedor`, `lote`, `fecha_vencimiento`, `unidad_medida` (kg, L, unidades — ya existe `unidad_contenido`).
-- La constraint `categoria_formato_check` se relaja para aceptar nuevas categorías (ej. `'Limpieza'`, `'Sanitización'`, `'Lácteos'`, `'Insumos secos'`, etc.) o se reemplaza por un esquema de categorías libres validado por una tabla `categorias` en vez de un `check` hardcodeado (más flexible a futuro).
-
-UI: páginas nuevas `sustancias.html` y `materias-primas.html`, pero reusando ~80% de `conteo.js`/`stock.js`/`metricas.js` parametrizados por `tipo_item`. Las planillas imprimibles también se generalizan.
-
-**Resultado**: 1 motor, 3 "vistas" de inventario, código compartido, un solo lugar para arreglar bugs.
+No requiere arquitectura nueva ni `tipo_item`. Queda pendiente solo de la info del catálogo.
 
 ---
 
@@ -55,64 +55,47 @@ Esto es trabajo de fondo (no se "ve" en la UI) pero es la diferencia entre "el m
 
 ## 5. Diseño por módulo
 
-### 5.1 Inventario de Sustancias
-- Reusa motor genérico (sección 3). Categorías sugeridas: Limpieza, Sanitización, Plagas/control.
-- Campos extra: `ficha_seguridad_url`, `tipo_sustancia`, `fecha_vencimiento`.
-- Página `sustancias.html` (admin) con stock, conteo, planilla imprimible — igual flujo que helados.
-- Alertas de stock mínimo y vencimiento próximo (campo ya existe `stock_minimo`, agregar lógica de vencimiento en Métricas).
+### 5.1 Sustancias (catálogo nuevo)
+- Ver sección 3. Pendiente de catálogo (mañana). Cuando llegue: `migration_v5_sustancias.sql` + carga de productos. Las páginas existentes lo absorben solas.
 
-### 5.2 Inventario de Materias Primas
-- Igual mecánica. Campos extra: `proveedor`, `lote`, `fecha_vencimiento`.
-- Útil para planificar compras (cruzar con producción futura — *fuera de alcance por ahora*, pero la estructura lo permite después).
-- Página `materias-primas.html` (admin).
-
-### 5.3 Trabajadores + contratos
+### 5.2 Trabajadores + contratos (admin)
 - Tabla `trabajadores`: nombre, RUT, cargo, fecha_ingreso, teléfono, email, estado (activo/inactivo), contrato_path (ruta en Storage), notas.
 - Página `trabajadores.html` (admin): tabla editable (mismo patrón que "Encargados" en Configuración) + botón "Subir contrato" (PDF) y "Descargar" (signed URL).
 - **Requiere** la sección 4 (roles reales + bucket privado) antes de cargar datos reales.
 - Dato sensible: RUT es un identificador gubernamental (Ley 19.628). Mantenerlo solo en esta tabla protegida, no exponerlo en exports generales (Excel) salvo que sea necesario.
 
-### 5.4 Clientes frecuentes (tabla central)
-- Tabla `clientes`: nombre, tipo (distribuidor/persona/empresa), contacto_telefono, contacto_email, ubicación, notas, activo.
-- `venta.html`/`js/venta.js`: agregar selector opcional "Vendido a" (mismo patrón que el selector de "Encargado" en conteo) → guarda `cliente_id` en `movimientos_inventario` (columna nueva, nullable).
-- Página `clientes.html` (admin): CRUD simple, tabla editable.
-- Esta tabla se vuelve la referencia central para 5.5.
-
-### 5.5 Inventario de conservadoras (activos en terreno)
-- Tabla `conservadoras`: código/serie, modelo, `cliente_id` (FK a `clientes`), fecha_entrega, estado (en uso/mantención/devuelta), ubicación específica (si difiere de la del cliente), notas.
-- Al usar `cliente_id` en vez de duplicar nombre/teléfono/email/ubicación, los datos de contacto se editan en un solo lugar (`clientes`) y se reflejan en todas las conservadoras de ese cliente.
-- Página `conservadoras.html` (admin): tabla + filtro por cliente/estado. Mismo patrón de tabla editable que Configuración.
-- *Idea a futuro* (no para esta fase): código QR por conservadora para escanear en terreno y ver/actualizar estado desde el celular.
+### 5.3 Inventario de conservadoras (admin)
+- Tabla `conservadoras`: código/serie, modelo, cliente (nombre), contacto_telefono, contacto_email, ubicación, fecha_entrega, estado (en uso/mantención/devuelta), notas.
+- Para esta fase, los datos del cliente van **directo en la tabla `conservadoras`** (nombre/teléfono/email/ubicación), sin tabla `clientes` separada — es lo que pediste y no agrega una entidad nueva que hoy no se usa en otro lado. Si más adelante se retoma "clientes frecuentes" + Venta, se puede migrar a una tabla `clientes` con FK sin perder datos.
+- Página `conservadoras.html` (admin): tabla editable, filtro por cliente/estado. Mismo patrón que Configuración.
+- *Idea a futuro*: código QR por conservadora para escanear en terreno desde el celular.
+- Dato de contacto de clientes (teléfono/email) es información de terceros, no tan sensible como RUT/contratos, pero igual conviene que viva detrás de `es_admin()` (sección 4) por prolijidad.
 
 ---
 
 ## 6. Orden de implementación propuesto
 
-Pediste partir por inventario (sustancias/MP) porque es extensión directa de lo existente. Propongo este orden, con dependencias marcadas:
-
 | Fase | Módulo | SQL | Complejidad | Depende de |
 |---|---|---|---|---|
-| 1 | Sustancias + Materias Primas (motor genérico extendido) | `migration_v5_almacenes.sql` | Media | — |
-| 2 | Roles reales en BD (`perfiles`, `es_admin()`, RLS) | `migration_v6_roles.sql` | Media | — (puede ir en paralelo a Fase 1) |
-| 3 | Clientes frecuentes + integración Venta | `migration_v7_clientes.sql` | Baja-Media | Fase 2 (si se restringe acceso a clientes) |
-| 4 | Conservadoras | `migration_v8_conservadoras.sql` | Baja | Fase 3 (usa `clientes`) |
-| 5 | Trabajadores + contratos (Storage) | `migration_v9_trabajadores.sql` + bucket | Media-Alta | Fase 2 (RLS real obligatoria) |
+| 1 | Roles reales en BD (`perfiles`, `es_admin()`, RLS) | `migration_v5_roles.sql` | Media | — |
+| 2 | Inventario de conservadoras | `migration_v6_conservadoras.sql` | Baja | Fase 1 |
+| 3 | Trabajadores + contratos (Storage) | `migration_v7_trabajadores.sql` + bucket | Media-Alta | Fase 1 |
+| 4 | Sustancias (catálogo nuevo) | `migration_v8_sustancias.sql` | Baja-Media | Catálogo (mañana) |
 
-Sugerencia: hacer Fase 1 y 2 juntas en la próxima sesión (ambas son "infraestructura"), y desde ahí ir módulo por módulo validando con datos reales antes de seguir — evita acumular 5 features sin probar.
+Conservadoras antes de Trabajadores porque no involucra Storage ni PDFs — más rápido de validar de punta a punta. Sustancias va aparte porque depende solo de la info del catálogo, no de las otras fases — se puede intercalar en cualquier momento que llegue esa info.
 
 ---
 
 ## 7. Crítica general y riesgos
 
-- **No dupliques el motor de inventario** (sección 3) — es el riesgo más grande de este plan si se apura. Vale la pena la sesión extra de diseño ahora para no mantener 3 copias después.
-- **Roles reales antes de Trabajadores**, no después. Si se carga un contrato real antes de tener RLS real, queda expuesto aunque sea "por poco tiempo".
-- **RUT y datos personales**: trabajadores y clientes son los primeros datos personales reales del sistema. Mantenerlos solo en las tablas protegidas, y no incluirlos en los exports a Excel existentes salvo que se agregue explícitamente.
-- **Uso en terreno (conservadoras)**: hoy el sistema se usa en la heladería (PC/tablet). Si alguien va a actualizar el estado de una conservadora donde un cliente, probablemente sea desde el celular — vale la pena revisar que las tablas editables (patrón Configuración) sean usables en mobile, igual que se hizo con `conteo.html`.
-- **Alcance total es grande**: 5 tablas nuevas + RLS real + Storage + 5 páginas nuevas + cambios en Venta/Métricas. Recomiendo tratarlo como 5 sesiones de trabajo, no una sola, con commit y prueba real entre cada una (mismo ritmo que se ha usado hasta ahora).
-- **Nomenclatura**: usar nombres consistentes con lo existente (`activo`, `orden`, `created_at`, patrón de tabla editable de Configuración) para que el código nuevo se sienta parte del mismo sistema, no un agregado aparte.
+- **Roles reales (Fase 1) son la base de todo lo demás** — sin esto, "admin" sigue siendo solo cosmético y los datos de trabajadores/conservadoras quedan técnicamente accesibles por cualquier usuario autenticado vía API. Vale la pena hacerla primero aunque no se "vea" en la UI.
+- **RUT y datos personales**: trabajadores (y los contactos de clientes en conservadoras) son los primeros datos personales reales del sistema. Mantenerlos en tablas protegidas por `es_admin()`, y no incluirlos en los exports a Excel existentes salvo que se agregue explícitamente.
+- **Uso en terreno (conservadoras)**: si alguien actualiza el estado de una conservadora donde un cliente, probablemente sea desde el celular — revisar que la tabla editable sea usable en mobile, igual que `conteo.html`.
+- **Sustancias es bajo riesgo técnico** pero depende de info externa (catálogo) — no bloquea las otras dos fases, puede ir en paralelo cuando llegue.
+- **Nomenclatura**: usar nombres consistentes con lo existente (`activo`, `orden`, `created_at`, patrón de tabla editable de Configuración).
 
 ---
 
 ## 8. Próximo paso sugerido
 
-Si te parece bien el orden, empezar por **Fase 1 (Sustancias + Materias Primas)**: escribir `migration_v5_almacenes.sql` (alter de `productos`/`movimientos_inventario`/`conteos` + nuevas categorías) y las páginas `sustancias.html` / `materias-primas.html` reusando `conteo.js`/`stock.js` generalizados. En paralelo o inmediatamente después, Fase 2 (roles reales) para dejar el terreno preparado antes de Trabajadores.
+Empezar por **Fase 1 (roles reales)**: `migration_v5_roles.sql` con tabla `perfiles`, función `es_admin()`, y poblar `perfiles` con los emails que hoy están en `ADMIN_EMAILS`. Es la base para Conservadoras y Trabajadores. Luego **Fase 2 (conservadoras)** como primer módulo nuevo visible, y **Fase 3 (trabajadores)** con Storage. Sustancias se suma cuando llegue el catálogo.
