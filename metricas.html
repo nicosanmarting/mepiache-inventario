@@ -16,7 +16,10 @@
 
       <div class="panel-titulo">
         <h2>Métricas</h2>
-        <button class="secundario" id="btn-exportar-excel">Exportar a Excel</button>
+        <div>
+          <button class="secundario" id="btn-pdf-mensual">Generar PDF mensual</button>
+          <button class="secundario" id="btn-exportar-excel">Exportar a Excel</button>
+        </div>
       </div>
 
       <div class="resumen-cards" id="metricas-cards">
@@ -105,6 +108,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
   <script src="js/supabase-config.js"></script>
   <script src="js/data.js"></script>
   <script src="js/nav.js"></script>

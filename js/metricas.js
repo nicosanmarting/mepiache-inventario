@@ -16,6 +16,7 @@ let _chartIngresos = null;
   await renderTodo();
 
   document.getElementById('btn-exportar-excel').addEventListener('click', exportarExcel);
+  document.getElementById('btn-pdf-mensual').addEventListener('click', generarPDFMensual);
 })();
 
 async function renderTodo() {
@@ -427,5 +428,88 @@ async function exportarExcel() {
   } finally {
     btn.disabled = false;
     btn.textContent = 'Exportar a Excel';
+  }
+}
+
+// --------- Reporte PDF mensual ---------
+
+async function generarPDFMensual() {
+  const btn = document.getElementById('btn-pdf-mensual');
+  btn.disabled = true;
+  btn.textContent = 'Generando...';
+
+  try {
+    const [m, mantenciones] = await Promise.all([
+      getMetricasMensuales(6),
+      getResumenMantenciones(),
+    ]);
+    const resumen = getResumenStock();
+    const mesActual = m.meses[m.meses.length - 1];
+
+    const doc = new jspdf.jsPDF();
+
+    doc.setFontSize(16);
+    doc.text('Mepiache Inventario — Reporte mensual', 14, 18);
+    doc.setFontSize(11);
+    doc.text(`Período: ${formatearMes(mesActual)}`, 14, 26);
+    doc.text(`Generado: ${formatearFechaHora(new Date().toISOString())}`, 14, 32);
+
+    doc.autoTable({
+      startY: 40,
+      head: [['Indicador', 'Valor']],
+      body: [
+        ['Stock total', String(m.stockTotal)],
+        ['Producido este mes', String(m.producidoMesActual)],
+        ['Vendido/salidas este mes', String(m.vendidoMesActual)],
+        ['Ingresos este mes', formatearCLP(m.ingresosMesActual)],
+        ['Mermas este mes', String(m.mermaMesActual)],
+        ['Productos con stock bajo', String(resumen.bajoStock)],
+        ['Productos sin stock', String(resumen.sinStock)],
+        ['Mantenciones de equipos vencidas', String(mantenciones.vencidos)],
+      ],
+      theme: 'striped',
+      headStyles: { fillColor: [200, 148, 26] },
+    });
+
+    const ranking = rankingVentas(m.movimientos);
+    let nextY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(13);
+    doc.text('Top 5 sabores más vendidos', 14, nextY);
+    doc.autoTable({
+      startY: nextY + 4,
+      head: [['Sabor', 'Categoría/Formato', 'Cantidad vendida', 'Ingresos']],
+      body: ranking.length > 0
+        ? ranking.map(r => [r.producto.nombre, r.producto.categoriaFormato, String(r.cantidad), formatearCLP(r.cantidad * (r.producto.precioVenta || 0))])
+        : [['Sin ventas/salidas registradas en el período.', '', '', '']],
+      theme: 'striped',
+      headStyles: { fillColor: [200, 148, 26] },
+    });
+
+    const orden = { sin_stock: 0, bajo: 1 };
+    const alertas = getProductos()
+      .filter(p => estadoStock(p) !== 'ok')
+      .sort((a, b) => orden[estadoStock(a)] - orden[estadoStock(b)]);
+
+    nextY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(13);
+    doc.text('Alertas de stock', 14, nextY);
+    doc.autoTable({
+      startY: nextY + 4,
+      head: [['Producto', 'Categoría/Formato', 'Stock actual', 'Stock mínimo', 'Estado']],
+      body: alertas.length > 0
+        ? alertas.map(p => [p.nombre, p.categoriaFormato, String(p.stock), String(p.stockMinimo), etiquetaEstadoStock(estadoStock(p))])
+        : [['Sin alertas: todo el stock está dentro de lo normal.', '', '', '', '']],
+      theme: 'striped',
+      headStyles: { fillColor: [200, 148, 26] },
+    });
+
+    const fechaArchivo = new Date().toISOString().slice(0, 10);
+    doc.save(`mepiache-reporte-mensual-${fechaArchivo}.pdf`);
+  } catch (err) {
+    console.error('Error generando PDF mensual:', err);
+    alert('No se pudo generar el reporte PDF.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Generar PDF mensual';
   }
 }
