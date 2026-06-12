@@ -26,6 +26,45 @@
       margin-top: 2px;
       color: #8a7a5c;
     }
+
+    .contrato-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .contrato-cell span {
+      font-size: 12px;
+      color: #8a7a5c;
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .upload-label {
+      cursor: pointer;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      font-family: var(--font-cuerpo);
+      background-color: var(--crema-oscura);
+      border: 1px solid var(--crema-oscura);
+      border-radius: 6px;
+      color: var(--negro);
+      transition: background-color 0.15s;
+      white-space: nowrap;
+    }
+
+    .upload-label:hover { background-color: var(--crema-oscura); filter: brightness(0.93); }
+
+    input[type="file"].file-hidden { display: none; }
+
+    .upload-progress {
+      font-size: 12px;
+      color: var(--dorado);
+    }
   </style>
 </head>
 <body>
@@ -135,11 +174,12 @@
               <th>Fecha entrega</th>
               <th>Estado</th>
               <th>Notas</th>
+              <th>Contrato</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody id="tabla-conservadoras-body">
-            <tr><td colspan="9" class="estado-vacio">Cargando...</td></tr>
+            <tr><td colspan="10" class="estado-vacio">Cargando...</td></tr>
           </tbody>
         </table>
       </div>

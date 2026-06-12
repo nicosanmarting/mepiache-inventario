@@ -2,6 +2,8 @@
    Mepiache Inventario - Conservadoras (admin)
    =========================== */
 
+const BUCKET_CONSERVADORAS = 'conservadoras';
+
 // --------- Estado local ---------
 
 let _conservadoras = [];
@@ -125,6 +127,47 @@ async function toggleActivo(id, activo) {
   }
 }
 
+// --------- Upload / Download de contrato ---------
+
+async function subirContrato(conservadoraId, file) {
+  const ext = file.name.split('.').pop();
+  const path = `${conservadoraId}/${Date.now()}.${ext}`;
+
+  const { error } = await supabaseClient.storage
+    .from(BUCKET_CONSERVADORAS)
+    .upload(path, file, { upsert: true });
+
+  if (error) throw error;
+
+  await actualizarConservadora(conservadoraId, {
+    contrato_path: path,
+    contrato_nombre: file.name,
+  });
+
+  const c = _conservadoras.find(c => c.id === conservadoraId);
+  if (c) {
+    c.contrato_path = path;
+    c.contrato_nombre = file.name;
+  }
+}
+
+async function descargarContrato(path, nombre) {
+  const { data, error } = await supabaseClient.storage
+    .from(BUCKET_CONSERVADORAS)
+    .createSignedUrl(path, 60 * 60);
+
+  if (error) {
+    alert('No se pudo generar el enlace de descarga: ' + error.message);
+    return;
+  }
+
+  const a = document.createElement('a');
+  a.href = data.signedUrl;
+  a.download = nombre || 'contrato';
+  a.target = '_blank';
+  a.click();
+}
+
 // --------- Render tabla ---------
 
 function renderTabla() {
@@ -161,6 +204,7 @@ function renderTabla() {
       <td>${c.fecha_entrega ? formatearFecha(c.fecha_entrega) : '—'}</td>
       <td><span class="badge ${c.estado}">${ESTADO_LABELS[c.estado] || c.estado}</span></td>
       <td class="notas-cell">${esc(c.notas) || '<span style="color:#ccc">—</span>'}</td>
+      <td>${renderCeldaContrato(c)}</td>
       <td>
         <div class="acciones-tabla">
           <button onclick="abrirFormulario(getConservadoraPorId('${c.id}'))">Editar</button>
@@ -169,6 +213,53 @@ function renderTabla() {
       </td>
     </tr>
   `).join('');
+
+  // Adjuntar listeners de upload después de renderizar
+  filtrados.forEach(c => {
+    const fileInput = document.getElementById(`file-${c.id}`);
+    if (fileInput) {
+      fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const progressEl = document.getElementById(`progress-${c.id}`);
+        if (progressEl) progressEl.textContent = 'Subiendo...';
+
+        try {
+          await subirContrato(c.id, file);
+          renderTabla();
+        } catch (err) {
+          if (progressEl) progressEl.textContent = 'Error al subir';
+          alert('Error al subir contrato: ' + (err.message || err));
+        }
+      });
+    }
+  });
+}
+
+function renderCeldaContrato(c) {
+  const uploadInput = `<input type="file" id="file-${c.id}" class="file-hidden" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">`;
+  const uploadBtn = `<label for="file-${c.id}" class="upload-label">📎 Subir</label>`;
+  const progress = `<span id="progress-${c.id}" class="upload-progress"></span>`;
+
+  if (c.contrato_path) {
+    return `
+      <div class="contrato-cell">
+        <button class="secundario" style="padding:5px 10px;font-size:12px;" onclick="descargarContrato('${esc(c.contrato_path)}', '${esc(c.contrato_nombre)}')">⬇ Descargar</button>
+        <span title="${esc(c.contrato_nombre)}">${esc(c.contrato_nombre)}</span>
+        ${uploadInput}
+        ${uploadBtn}
+        ${progress}
+      </div>`;
+  }
+
+  return `
+    <div class="contrato-cell">
+      <span style="color:#ccc">Sin documento</span>
+      ${uploadInput}
+      ${uploadBtn}
+      ${progress}
+    </div>`;
 }
 
 function renderCeldaContacto(c) {

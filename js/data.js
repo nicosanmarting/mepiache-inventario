@@ -615,7 +615,7 @@ async function actualizarTrabajador(id, campos) {
 async function getConservadoras() {
   const { data, error } = await supabaseClient
     .from('conservadoras')
-    .select('id, codigo, modelo, cliente_nombre, contacto_telefono, contacto_email, ubicacion, fecha_entrega, estado, notas, activo, created_at')
+    .select('id, codigo, modelo, cliente_nombre, contacto_telefono, contacto_email, ubicacion, fecha_entrega, estado, notas, contrato_path, contrato_nombre, activo, created_at')
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -664,6 +664,8 @@ async function actualizarConservadora(id, campos) {
   if ('fecha_entrega' in campos) payload.fecha_entrega = campos.fecha_entrega || null;
   if ('estado' in campos) payload.estado = campos.estado;
   if ('notas' in campos) payload.notas = campos.notas || null;
+  if ('contrato_path' in campos) payload.contrato_path = campos.contrato_path || null;
+  if ('contrato_nombre' in campos) payload.contrato_nombre = campos.contrato_nombre || null;
   if ('activo' in campos) payload.activo = !!campos.activo;
 
   const { error } = await supabaseClient
