@@ -18,6 +18,7 @@
 
 const ADMIN_EMAILS = [
   'nico.sanmarting19@gmail.com',
+  'msanmartinguevara@gmail.com',
 ];
 
 const NAV_LINKS = [
