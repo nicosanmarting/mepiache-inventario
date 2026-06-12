@@ -42,6 +42,12 @@
             <label for="mov-motivo">Motivo</label>
             <select id="mov-motivo"></select>
           </div>
+          <div class="form-row" id="mov-cliente-row">
+            <label for="mov-cliente">Cliente (opcional)</label>
+            <select id="mov-cliente">
+              <option value="">— Sin especificar —</option>
+            </select>
+          </div>
           <div class="form-row">
             <label for="mov-nota">Nota (opcional)</label>
             <input type="text" id="mov-nota" placeholder="Ej: cliente, pedido especial...">
@@ -69,6 +75,7 @@
               <th>Categoría / formato</th>
               <th class="numero">Cantidad</th>
               <th>Motivo</th>
+              <th>Cliente</th>
             </tr>
           </thead>
           <tbody id="mov-tabla-body">

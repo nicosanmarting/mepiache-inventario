@@ -6,13 +6,14 @@
    con su configuración específica.
    =========================== */
 
-function initMovimientoPage({ paginaActiva, tipoMovimiento, motivos, mensajeExito, soloAdmin, permitirNegativoOpcion }) {
+function initMovimientoPage({ paginaActiva, tipoMovimiento, motivos, mensajeExito, soloAdmin, permitirNegativoOpcion, mostrarCliente }) {
   (async () => {
     const session = await initLayout(paginaActiva, { soloAdmin: !!soloAdmin });
     if (!session) return;
 
     poblarCategorias();
     poblarMotivos();
+    if (mostrarCliente) poblarClientes();
     document.getElementById('mov-fecha').valueAsDate = new Date();
 
     document.getElementById('mov-categoria').addEventListener('change', () => {
@@ -62,6 +63,14 @@ function initMovimientoPage({ paginaActiva, tipoMovimiento, motivos, mensajeExit
     sel.innerHTML = motivos.map(m => `<option value="${m}">${m}</option>`).join('');
   }
 
+  function poblarClientes() {
+    const sel = document.getElementById('mov-cliente');
+    if (!sel) return;
+    const clientes = getClientes();
+    sel.innerHTML = '<option value="">— Sin especificar —</option>'
+      + clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+  }
+
   function actualizarStockActual() {
     const id = document.getElementById('mov-producto').value;
     const producto = getProductoPorId(id);
@@ -99,9 +108,11 @@ function initMovimientoPage({ paginaActiva, tipoMovimiento, motivos, mensajeExit
     const motivo = motivos ? document.getElementById('mov-motivo').value : null;
     const forzarEl = document.getElementById('mov-forzar');
     const permitirNegativo = forzarEl ? forzarEl.checked : false;
+    const clienteEl = mostrarCliente ? document.getElementById('mov-cliente') : null;
+    const clienteId = clienteEl ? (clienteEl.value || null) : null;
 
     try {
-      await registrarMovimiento({ productoId, tipoMovimiento, cantidad, motivo, nota, fecha, permitirNegativo });
+      await registrarMovimiento({ productoId, tipoMovimiento, cantidad, motivo, nota, fecha, permitirNegativo, clienteId });
 
       mensaje.textContent = mensajeExito;
       mensaje.classList.add('exito');
@@ -114,6 +125,7 @@ function initMovimientoPage({ paginaActiva, tipoMovimiento, motivos, mensajeExit
       document.getElementById('mov-cantidad').value = '';
       document.getElementById('mov-nota').value = '';
       if (forzarEl) forzarEl.checked = false;
+      if (clienteEl) clienteEl.value = '';
 
       actualizarStockActual();
       await renderUltimosMovimientos();
@@ -133,9 +145,10 @@ function initMovimientoPage({ paginaActiva, tipoMovimiento, motivos, mensajeExit
     if (!tbody) return;
 
     const movimientos = await getMovimientos({ limite: 15, tipoMovimiento });
+    const colspan = mostrarCliente ? 6 : 5;
 
     if (movimientos.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5">Aún no hay registros.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="${colspan}">Aún no hay registros.</td></tr>`;
       return;
     }
 
@@ -146,7 +159,18 @@ function initMovimientoPage({ paginaActiva, tipoMovimiento, motivos, mensajeExit
         <td>${m.producto ? m.producto.categoriaFormato : ''}</td>
         <td class="numero">${m.cantidad}</td>
         <td>${m.motivo || m.nota || ''}</td>
+        ${mostrarCliente ? `<td>${m.cliente ? esc(m.cliente.nombre) : ''}</td>` : ''}
       </tr>
     `).join('');
   }
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }

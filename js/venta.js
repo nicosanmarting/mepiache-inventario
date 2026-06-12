@@ -8,4 +8,5 @@ initMovimientoPage({
   motivos: MOTIVOS_VENTA_SALIDA,
   mensajeExito: 'Salida registrada ✔',
   soloAdmin: false,
+  mostrarCliente: true,
 });

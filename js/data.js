@@ -134,6 +134,86 @@ async function actualizarEncargado(id, campos) {
   }
 }
 
+// --------- Clientes frecuentes ---------
+
+let _clientesCache = null;
+
+async function cargarClientes() {
+  const { data, error } = await supabaseClient
+    .from('clientes')
+    .select('id, nombre, contacto_telefono, contacto_email, activo, orden, created_at')
+    .order('orden', { ascending: true });
+
+  if (error) {
+    console.error('Error cargando clientes:', error);
+    _clientesCache = [];
+    return _clientesCache;
+  }
+
+  _clientesCache = data;
+  return _clientesCache;
+}
+
+// Clientes activos, para el selector de Venta.
+function getClientes() {
+  return (_clientesCache || []).filter(c => c.activo);
+}
+
+// Todos los clientes (activos e inactivos), para la página Clientes.
+function getClientesTodos() {
+  return _clientesCache || [];
+}
+
+function getClientePorId(id) {
+  return (_clientesCache || []).find(c => c.id === id) || null;
+}
+
+async function crearCliente(datos) {
+  const payload = {
+    nombre: datos.nombre,
+    contacto_telefono: datos.contacto_telefono || null,
+    contacto_email: datos.contacto_email || null,
+    activo: true,
+  };
+
+  const { data, error } = await supabaseClient
+    .from('clientes')
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creando cliente:', error);
+    throw error;
+  }
+
+  if (_clientesCache) _clientesCache.push(data);
+  return data;
+}
+
+async function actualizarCliente(id, campos) {
+  const payload = {};
+
+  if ('nombre' in campos) payload.nombre = campos.nombre;
+  if ('contacto_telefono' in campos) payload.contacto_telefono = campos.contacto_telefono || null;
+  if ('contacto_email' in campos) payload.contacto_email = campos.contacto_email || null;
+  if ('activo' in campos) payload.activo = !!campos.activo;
+  if ('orden' in campos) payload.orden = (campos.orden === '' || campos.orden === null) ? null : Number(campos.orden);
+
+  const { error } = await supabaseClient
+    .from('clientes')
+    .update(payload)
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error actualizando cliente:', error);
+    throw error;
+  }
+
+  const c = getClientePorId(id);
+  if (c) Object.assign(c, payload);
+}
+
 // --------- Configuración / productos (admin) ---------
 
 // Trae TODOS los productos (activos e inactivos), sin pasar por la caché.
@@ -280,8 +360,8 @@ function etiquetaTipoMovimiento(tipo) {
 
 // Registra un movimiento vía RPC (atómico: actualiza stock_actual + inserta historial).
 // tipoMovimiento: 'produccion' | 'venta_salida' | 'merma' | 'ajuste_manual'
-async function registrarMovimiento({ productoId, tipoMovimiento, cantidad, motivo, nota, fecha, permitirNegativo }) {
-  const { data, error } = await supabaseClient.rpc('registrar_movimiento', {
+async function registrarMovimiento({ productoId, tipoMovimiento, cantidad, motivo, nota, fecha, permitirNegativo, clienteId }) {
+  let { data, error } = await supabaseClient.rpc('registrar_movimiento', {
     p_producto_id: productoId,
     p_tipo_movimiento: tipoMovimiento,
     p_cantidad: cantidad,
@@ -289,7 +369,21 @@ async function registrarMovimiento({ productoId, tipoMovimiento, cantidad, motiv
     p_nota: nota || null,
     p_fecha: fecha || new Date().toISOString().slice(0, 10),
     p_permitir_negativo: !!permitirNegativo,
+    p_cliente_id: clienteId || null,
   });
+
+  if (error && error.code === 'PGRST202') {
+    // RPC todavía no tiene el parámetro p_cliente_id (migration_v9 pendiente).
+    ({ data, error } = await supabaseClient.rpc('registrar_movimiento', {
+      p_producto_id: productoId,
+      p_tipo_movimiento: tipoMovimiento,
+      p_cantidad: cantidad,
+      p_motivo: motivo || null,
+      p_nota: nota || null,
+      p_fecha: fecha || new Date().toISOString().slice(0, 10),
+      p_permitir_negativo: !!permitirNegativo,
+    }));
+  }
 
   if (error) {
     console.error('Error registrando movimiento:', error);
@@ -310,7 +404,7 @@ async function registrarMovimiento({ productoId, tipoMovimiento, cantidad, motiv
 async function getMovimientos({ limite = 50, productoId = null, tipoMovimiento = null, categoriaFormato = null, desde = null, hasta = null } = {}) {
   let query = supabaseClient
     .from('movimientos_inventario')
-    .select('id, producto_id, tipo_movimiento, cantidad, stock_antes, stock_despues, motivo, nota, usuario_id, fecha, created_at')
+    .select('id, producto_id, tipo_movimiento, cantidad, stock_antes, stock_despues, motivo, nota, usuario_id, fecha, created_at, cliente_id')
     .order('fecha', { ascending: false })
     .order('created_at', { ascending: false })
     .limit(limite);
@@ -320,7 +414,25 @@ async function getMovimientos({ limite = 50, productoId = null, tipoMovimiento =
   if (desde) query = query.gte('fecha', desde);
   if (hasta) query = query.lte('fecha', hasta);
 
-  const { data, error } = await query;
+  let { data, error } = await query;
+
+  if (error && error.code === '42703') {
+    // Columna cliente_id no existe todavía (migration_v9 pendiente).
+    query = supabaseClient
+      .from('movimientos_inventario')
+      .select('id, producto_id, tipo_movimiento, cantidad, stock_antes, stock_despues, motivo, nota, usuario_id, fecha, created_at')
+      .order('fecha', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(limite);
+
+    if (productoId) query = query.eq('producto_id', productoId);
+    if (tipoMovimiento) query = query.eq('tipo_movimiento', tipoMovimiento);
+    if (desde) query = query.gte('fecha', desde);
+    if (hasta) query = query.lte('fecha', hasta);
+
+    ({ data, error } = await query);
+  }
+
   if (error) {
     console.error('Error cargando movimientos:', error);
     return [];
@@ -329,6 +441,7 @@ async function getMovimientos({ limite = 50, productoId = null, tipoMovimiento =
   let movimientos = data.map(m => ({
     ...m,
     producto: getProductoPorId(m.producto_id) || null,
+    cliente: m.cliente_id ? getClientePorId(m.cliente_id) : null,
   }));
 
   if (categoriaFormato) {
