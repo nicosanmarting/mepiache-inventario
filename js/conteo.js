@@ -148,14 +148,14 @@ async function mostrarConteo(conteoId) {
 
     return `
       <tr data-detalle-id="${d.id}">
-        <td>${d.producto ? (d.producto.codigo || '') : ''}</td>
-        <td>${d.producto ? d.producto.nombre : d.producto_id}</td>
-        <td class="numero">${sistema}</td>
-        <td class="numero">
+        <td data-label="Código">${d.producto ? (d.producto.codigo || '') : ''}</td>
+        <td data-label="Sabor">${d.producto ? d.producto.nombre : d.producto_id}</td>
+        <td class="numero" data-label="Stock sistema">${sistema}</td>
+        <td class="numero" data-label="Stock contado">
           <input type="number" class="input-contado" value="${contado}" ${finalizado ? 'disabled' : ''}>
         </td>
-        <td class="${diffClase} diferencia-cell">${diffTexto}</td>
-        <td><input type="text" class="input-observacion" value="${(d.observacion || '').replace(/"/g, '&quot;')}" ${finalizado ? 'disabled' : ''}></td>
+        <td class="${diffClase} diferencia-cell" data-label="Diferencia">${diffTexto}</td>
+        <td data-label="Observación"><input type="text" class="input-observacion" value="${(d.observacion || '').replace(/"/g, '&quot;')}" ${finalizado ? 'disabled' : ''}></td>
       </tr>
     `;
   }).join('');

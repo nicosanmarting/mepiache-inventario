@@ -154,12 +154,12 @@ function initMovimientoPage({ paginaActiva, tipoMovimiento, motivos, mensajeExit
 
     tbody.innerHTML = movimientos.map(m => `
       <tr>
-        <td>${formatearFecha(m.fecha)}</td>
-        <td>${m.producto ? m.producto.nombre : m.producto_id}</td>
-        <td>${m.producto ? m.producto.categoriaFormato : ''}</td>
-        <td class="numero">${m.cantidad}</td>
-        <td>${m.motivo || m.nota || ''}</td>
-        ${mostrarCliente ? `<td>${m.cliente ? esc(m.cliente.nombre) : ''}</td>` : ''}
+        <td data-label="Fecha">${formatearFecha(m.fecha)}</td>
+        <td data-label="Sabor">${m.producto ? m.producto.nombre : m.producto_id}</td>
+        <td data-label="Categoría / formato">${m.producto ? m.producto.categoriaFormato : ''}</td>
+        <td class="numero" data-label="Cantidad">${m.cantidad}</td>
+        <td data-label="Motivo">${m.motivo || m.nota || ''}</td>
+        ${mostrarCliente ? `<td data-label="Cliente">${m.cliente ? esc(m.cliente.nombre) : ''}</td>` : ''}
       </tr>
     `).join('');
   }

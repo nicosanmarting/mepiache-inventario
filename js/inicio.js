@@ -63,12 +63,12 @@ async function renderAlertasCriticas() {
     const badgeClass = it.estado === 'sin_stock' ? 'sin' : 'bajo';
     return `
       <tr>
-        <td>${it.tipo}</td>
-        <td>${it.nombre}</td>
-        <td>${it.categoria}</td>
-        <td class="numero">${it.stock} ${it.unidad}</td>
-        <td class="numero">${it.stockMinimo} ${it.unidad}</td>
-        <td><span class="badge ${badgeClass}">${etiquetaEstadoStock(it.estado)}</span></td>
+        <td data-label="Tipo">${it.tipo}</td>
+        <td data-label="Nombre">${it.nombre}</td>
+        <td data-label="Categoría">${it.categoria}</td>
+        <td class="numero" data-label="Stock actual">${it.stock} ${it.unidad}</td>
+        <td class="numero" data-label="Stock mínimo">${it.stockMinimo} ${it.unidad}</td>
+        <td data-label="Estado"><span class="badge ${badgeClass}">${etiquetaEstadoStock(it.estado)}</span></td>
       </tr>
     `;
   }).join('');
@@ -141,11 +141,11 @@ async function renderUltimosMovimientos() {
 
   tbody.innerHTML = movimientos.map(m => `
     <tr>
-      <td>${formatearFecha(m.fecha)}</td>
-      <td>${m.producto ? m.producto.nombre : m.producto_id}</td>
-      <td>${etiquetaTipoMovimiento(m.tipo_movimiento)}</td>
-      <td class="numero">${m.cantidad}</td>
-      <td>${m.motivo || ''}</td>
+      <td data-label="Fecha">${formatearFecha(m.fecha)}</td>
+      <td data-label="Producto">${m.producto ? m.producto.nombre : m.producto_id}</td>
+      <td data-label="Tipo">${etiquetaTipoMovimiento(m.tipo_movimiento)}</td>
+      <td class="numero" data-label="Cantidad">${m.cantidad}</td>
+      <td data-label="Motivo">${m.motivo || ''}</td>
     </tr>
   `).join('');
 }

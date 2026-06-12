@@ -755,6 +755,104 @@ footer {
   height: 26px;
 }
 
+/* ---------- Responsive: pantallas pequeñas (celular) ---------- */
+
+@media (max-width: 700px) {
+  main {
+    padding: 14px;
+  }
+
+  .panel-titulo h2 {
+    font-size: 19px;
+  }
+
+  /* Campos y botones más grandes para uso táctil */
+  button, .btn {
+    padding: 13px 16px;
+    font-size: 15px;
+  }
+
+  input, select {
+    padding: 12px;
+    font-size: 15px;
+  }
+
+  .acciones-tabla a, .acciones-tabla button {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .form-card .form-row.dos-columnas {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* Navegación: scroll horizontal con inercia */
+  .app-nav, .tabs {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Tablas operativas: de filas a tarjetas apiladas */
+  .tabla-wrapper table.tabla-responsive,
+  .tabla-wrapper table.tabla-responsive tbody,
+  .tabla-wrapper table.tabla-responsive tr,
+  .tabla-wrapper table.tabla-responsive td {
+    display: block;
+    width: 100%;
+  }
+
+  .tabla-wrapper table.tabla-responsive thead {
+    display: none;
+  }
+
+  .tabla-wrapper table.tabla-responsive tbody tr {
+    padding: 10px 14px;
+    border-bottom: 2px solid var(--crema-oscura);
+  }
+
+  .tabla-wrapper table.tabla-responsive tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .tabla-wrapper table.tabla-responsive td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 0;
+    text-align: right;
+    border: none;
+  }
+
+  .tabla-wrapper table.tabla-responsive td[data-label]::before {
+    content: attr(data-label);
+    font-weight: bold;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 11px;
+    color: #8a7a5c;
+    flex-shrink: 0;
+    margin-right: 10px;
+  }
+
+  .tabla-wrapper table.tabla-responsive td input,
+  .tabla-wrapper table.tabla-responsive td select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .tabla-wrapper table.tabla-responsive td input[type="number"] {
+    text-align: right;
+  }
+
+  /* Filas sin data-label (estados vacíos, "cargando...") */
+  .tabla-wrapper table.tabla-responsive td:not([data-label]) {
+    justify-content: flex-start;
+    text-align: left;
+  }
+}
+
 @media print {
   .no-imprimir {
     display: none !important;
