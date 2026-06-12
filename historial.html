@@ -65,6 +65,43 @@
         </table>
       </div>
 
+      <div class="panel-titulo" style="margin-top: 28px;">
+        <h2>Comparar conteos</h2>
+      </div>
+      <p>Compara el stock contado entre dos conteos finalizados para detectar diferencias sistemáticas en el tiempo.</p>
+
+      <div class="filtros" id="filtros-comparar">
+        <div>
+          <label for="comparar-conteo-a">Conteo A</label>
+          <select id="comparar-conteo-a">
+            <option value="">Selecciona un conteo...</option>
+          </select>
+        </div>
+        <div>
+          <label for="comparar-conteo-b">Conteo B</label>
+          <select id="comparar-conteo-b">
+            <option value="">Selecciona un conteo...</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="tabla-wrapper">
+        <table class="tabla-conteo">
+          <thead>
+            <tr>
+              <th>Sabor</th>
+              <th>Categoría / formato</th>
+              <th class="numero" id="th-comparar-a">Contado A</th>
+              <th class="numero" id="th-comparar-b">Contado B</th>
+              <th class="numero">Diferencia (B − A)</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-comparar-body">
+            <tr><td colspan="5">Selecciona dos conteos para comparar.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
     </main>
   </div>
 

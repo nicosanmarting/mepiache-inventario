@@ -8,6 +8,7 @@
 
   poblarFiltros();
   await renderTabla();
+  await poblarCompararConteos();
 
   document.querySelectorAll('#filtros-historial select, #filtros-historial input').forEach(el => {
     el.addEventListener('change', renderTabla);
@@ -64,4 +65,92 @@ async function renderTabla() {
       <td>${m.nota || ''}</td>
     </tr>
   `).join('');
+}
+
+// --------- Comparar conteos ---------
+
+async function poblarCompararConteos() {
+  const conteos = await getConteos({ limite: 100, estado: 'finalizado' });
+
+  const opciones = conteos.map(c => {
+    const fecha = formatearFechaHora(c.finalized_at || c.created_at);
+    return `<option value="${c.id}">${c.categoria_formato} — ${fecha}</option>`;
+  }).join('');
+
+  const selA = document.getElementById('comparar-conteo-a');
+  const selB = document.getElementById('comparar-conteo-b');
+
+  selA.innerHTML += opciones;
+  selB.innerHTML += opciones;
+
+  [selA, selB].forEach(sel => sel.addEventListener('change', renderComparacionConteos));
+}
+
+async function renderComparacionConteos() {
+  const tbody = document.getElementById('tabla-comparar-body');
+  const selA = document.getElementById('comparar-conteo-a');
+  const selB = document.getElementById('comparar-conteo-b');
+  const thA = document.getElementById('th-comparar-a');
+  const thB = document.getElementById('th-comparar-b');
+  const idA = selA.value;
+  const idB = selB.value;
+
+  if (!idA || !idB) {
+    tbody.innerHTML = `<tr><td colspan="5">Selecciona dos conteos para comparar.</td></tr>`;
+    thA.textContent = 'Contado A';
+    thB.textContent = 'Contado B';
+    return;
+  }
+
+  tbody.innerHTML = `<tr><td colspan="5">Cargando...</td></tr>`;
+  thA.textContent = `Contado: ${selA.selectedOptions[0].textContent}`;
+  thB.textContent = `Contado: ${selB.selectedOptions[0].textContent}`;
+
+  const [detalleA, detalleB] = await Promise.all([
+    getConteoDetalle(idA),
+    getConteoDetalle(idB),
+  ]);
+
+  const mapaA = {};
+  detalleA.forEach(d => { mapaA[d.producto_id] = d; });
+  const mapaB = {};
+  detalleB.forEach(d => { mapaB[d.producto_id] = d; });
+
+  const ids = new Set([...Object.keys(mapaA), ...Object.keys(mapaB)]);
+
+  const filas = Array.from(ids)
+    .map(id => {
+      const dA = mapaA[id];
+      const dB = mapaB[id];
+      const producto = (dA && dA.producto) || (dB && dB.producto);
+      const contadoA = (dA && dA.stock_contado !== null) ? Number(dA.stock_contado) : null;
+      const contadoB = (dB && dB.stock_contado !== null) ? Number(dB.stock_contado) : null;
+      const diferencia = (contadoA !== null && contadoB !== null) ? contadoB - contadoA : null;
+      return { producto, contadoA, contadoB, diferencia };
+    })
+    .filter(f => f.producto)
+    .sort((a, b) => a.producto.categoriaFormato.localeCompare(b.producto.categoriaFormato) || (a.producto.orden || 0) - (b.producto.orden || 0));
+
+  if (filas.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5">No hay datos de conteo para comparar.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filas.map(f => {
+    let clase = '';
+    let texto = '—';
+    if (f.diferencia !== null) {
+      texto = (f.diferencia > 0 ? '+' : '') + f.diferencia;
+      clase = f.diferencia > 0 ? 'positiva' : (f.diferencia < 0 ? 'negativa' : '');
+    }
+    return `
+      <tr>
+        <td>${f.producto.nombre}</td>
+        <td>${f.producto.categoriaFormato}</td>
+        <td class="numero">${f.contadoA ?? '—'}</td>
+        <td class="numero">${f.contadoB ?? '—'}</td>
+        <td class="numero diferencia ${clase}">${texto}</td>
+      </tr>
+    `;
+  }).join('');
 }
