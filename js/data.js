@@ -793,6 +793,175 @@ async function actualizarConservadora(id, campos) {
   }
 }
 
+// --------- Equipos / Mantención (admin) ---------
+
+// Devuelve los equipos con su última fecha de mantención (calculada
+// desde mantenciones_equipos), para poder derivar próxima fecha y estado.
+async function getEquipos() {
+  const { data: equipos, error } = await supabaseClient
+    .from('equipos')
+    .select('id, nombre, descripcion, frecuencia_dias, activo, orden, created_at')
+    .order('orden', { ascending: true })
+    .order('nombre', { ascending: true });
+
+  if (error) {
+    console.error('Error cargando equipos:', error);
+    return [];
+  }
+
+  const { data: mantenciones, error: errM } = await supabaseClient
+    .from('mantenciones_equipos')
+    .select('equipo_id, fecha')
+    .order('fecha', { ascending: false });
+
+  if (errM) {
+    console.error('Error cargando mantenciones:', errM);
+  }
+
+  const ultimaPorEquipo = {};
+  (mantenciones || []).forEach(m => {
+    if (!ultimaPorEquipo[m.equipo_id]) ultimaPorEquipo[m.equipo_id] = m.fecha;
+  });
+
+  return equipos.map(e => ({ ...e, ultima_mantencion: ultimaPorEquipo[e.id] || null }));
+}
+
+async function crearEquipo(datos) {
+  const payload = {
+    nombre: datos.nombre,
+    descripcion: datos.descripcion || null,
+    frecuencia_dias: datos.frecuencia_dias || null,
+    orden: datos.orden || 0,
+    activo: true,
+  };
+
+  const { data, error } = await supabaseClient
+    .from('equipos')
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creando equipo:', error);
+    throw error;
+  }
+  return { ...data, ultima_mantencion: null };
+}
+
+async function actualizarEquipo(id, campos) {
+  const payload = { updated_at: new Date().toISOString() };
+
+  if ('nombre' in campos) payload.nombre = campos.nombre;
+  if ('descripcion' in campos) payload.descripcion = campos.descripcion || null;
+  if ('frecuencia_dias' in campos) payload.frecuencia_dias = campos.frecuencia_dias || null;
+  if ('orden' in campos) payload.orden = campos.orden || 0;
+  if ('activo' in campos) payload.activo = !!campos.activo;
+
+  const { error } = await supabaseClient
+    .from('equipos')
+    .update(payload)
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error actualizando equipo:', error);
+    throw error;
+  }
+}
+
+// --------- Mantenciones (historial por equipo) ---------
+
+async function getMantencionesEquipo(equipoId) {
+  const { data, error } = await supabaseClient
+    .from('mantenciones_equipos')
+    .select('id, equipo_id, fecha, descripcion, archivo_path, archivo_nombre, created_at')
+    .eq('equipo_id', equipoId)
+    .order('fecha', { ascending: false });
+
+  if (error) {
+    console.error('Error cargando historial de mantenciones:', error);
+    return [];
+  }
+  return data;
+}
+
+async function crearMantencion(equipoId, datos) {
+  const payload = {
+    equipo_id: equipoId,
+    fecha: datos.fecha,
+    descripcion: datos.descripcion || null,
+    archivo_path: datos.archivo_path || null,
+    archivo_nombre: datos.archivo_nombre || null,
+  };
+
+  const { data, error } = await supabaseClient
+    .from('mantenciones_equipos')
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error registrando mantención:', error);
+    throw error;
+  }
+  return data;
+}
+
+async function eliminarMantencion(id) {
+  const { error } = await supabaseClient
+    .from('mantenciones_equipos')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error eliminando mantención:', error);
+    throw error;
+  }
+}
+
+// --------- Estado de mantención (alertas) ---------
+
+// Calcula la próxima fecha de mantención y un estado:
+//   'vencido'     -> la próxima fecha ya pasó
+//   'proximo'     -> faltan 7 días o menos
+//   'ok'          -> faltan más de 7 días
+//   'sin_registro'-> no hay frecuencia definida o nunca se registró una mantención
+function calcularEstadoMantencion(equipo) {
+  if (!equipo.frecuencia_dias || !equipo.ultima_mantencion) {
+    return { proxima: null, estado: 'sin_registro', diasRestantes: null };
+  }
+
+  const ultima = new Date(equipo.ultima_mantencion + 'T00:00:00');
+  const proxima = new Date(ultima);
+  proxima.setDate(proxima.getDate() + Number(equipo.frecuencia_dias));
+
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  const diasRestantes = Math.round((proxima - hoy) / (1000 * 60 * 60 * 24));
+
+  let estado;
+  if (diasRestantes < 0) estado = 'vencido';
+  else if (diasRestantes <= 7) estado = 'proximo';
+  else estado = 'ok';
+
+  return { proxima: proxima.toISOString().slice(0, 10), estado, diasRestantes };
+}
+
+// Resumen para la card de alerta en Inicio.
+async function getResumenMantenciones() {
+  const equipos = (await getEquipos()).filter(e => e.activo);
+  let vencidos = 0;
+  let proximos = 0;
+
+  equipos.forEach(e => {
+    const { estado } = calcularEstadoMantencion(e);
+    if (estado === 'vencido') vencidos++;
+    else if (estado === 'proximo') proximos++;
+  });
+
+  return { vencidos, proximos, total: equipos.length };
+}
+
 // --------- Materias primas ---------
 
 // Orden sugerido de categorías en la UI (Materias primas).

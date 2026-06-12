@@ -51,7 +51,7 @@ function renderHoja() {
 function encabezado(dia, hora, encargado) {
   return `
     <div class="hoja-encabezado">
-      <div class="hoja-titulo">ARTESANALES MEPIACHE<br>INVENTARIO - STOCK</div>
+      <div class="hoja-titulo">MEPIACHE<br>INVENTARIO - STOCK</div>
       <div class="hoja-datos">
         <div><strong>DIA:</strong> ${dia ? formatearFecha(dia) : '_______________'}</div>
         <div><strong>HORA:</strong> ${hora || '_______________'}</div>

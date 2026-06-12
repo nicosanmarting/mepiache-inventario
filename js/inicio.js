@@ -13,14 +13,14 @@
     if (btnMetricas) btnMetricas.remove();
   }
 
-  renderResumen();
+  await renderResumen();
   await Promise.all([
     renderUltimoConteo(),
     renderUltimosMovimientos(),
   ]);
 })();
 
-function renderResumen() {
+async function renderResumen() {
   const { totalPorCategoria, bajoStock, sinStock } = getResumenStock();
 
   const totalPaletas = (totalPorCategoria['Paletas'] || 0) + (totalPorCategoria['Mis Paletas'] || 0);
@@ -35,6 +35,11 @@ function renderResumen() {
     { label: 'Productos con stock bajo', valor: bajoStock, alerta: bajoStock > 0, href: 'stock.html?estado=bajo' },
     { label: 'Productos sin stock', valor: sinStock, alerta: sinStock > 0, href: 'stock.html?estado=sin_stock' },
   ];
+
+  if (esAdmin()) {
+    const { vencidos } = await getResumenMantenciones();
+    cards.push({ label: 'Mantenciones vencidas', valor: vencidos, alerta: vencidos > 0, href: 'equipos.html' });
+  }
 
   document.getElementById('resumen-cards').innerHTML = cards.map(c => `
     <a class="card ${c.alerta ? 'alerta' : ''}" href="${c.href}">

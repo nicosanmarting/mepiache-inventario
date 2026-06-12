@@ -35,6 +35,7 @@ const NAV_LINKS = [
   { href: 'configuracion.html', label: 'Configuración', admin: true },
   { href: 'trabajadores.html', label: 'Trabajadores', admin: true },
   { href: 'conservadoras.html', label: 'Conservadoras', admin: true },
+  { href: 'equipos.html', label: 'Mantención equipos', admin: true },
   { href: 'documentos.html', label: 'Documentos', admin: true },
 ];
 
