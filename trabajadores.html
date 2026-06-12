@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Mepiache | Trabajadores</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .badge.activo   { background-color: #e3f3e1; color: #2e7d32; }
+    .badge.inactivo { background-color: #f0f0f0; color: #666; }
+
+    .contrato-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .contrato-cell span {
+      font-size: 12px;
+      color: #8a7a5c;
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .upload-label {
+      cursor: pointer;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      font-family: var(--font-cuerpo);
+      background-color: var(--crema-oscura);
+      border: 1px solid var(--crema-oscura);
+      border-radius: 6px;
+      color: var(--negro);
+      transition: background-color 0.15s;
+      white-space: nowrap;
+    }
+
+    .upload-label:hover { background-color: var(--crema-oscura); filter: brightness(0.93); }
+
+    input[type="file"].file-hidden { display: none; }
+
+    .upload-progress {
+      font-size: 12px;
+      color: var(--dorado);
+    }
+
+    .inoperancia-cell {
+      max-width: 220px;
+      white-space: pre-wrap;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app-layout">
+    <main>
+
+      <a href="inicio.html" class="volver">&larr; Inicio</a>
+
+      <div class="panel-titulo">
+        <h2>Trabajadores</h2>
+        <button id="btn-nuevo-trabajador">+ Nuevo trabajador</button>
+      </div>
+
+      <!-- Formulario: nuevo / editar trabajador -->
+      <div class="form-card form-card-toggle" id="form-trabajador" style="display: none; max-width: 100%;">
+        <h3 id="form-titulo" style="margin-top: 0;">Nuevo trabajador</h3>
+        <input type="hidden" id="t-id">
+
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="t-nombre">Nombre completo *</label>
+            <input type="text" id="t-nombre" placeholder="Ej: María González">
+          </div>
+          <div>
+            <label for="t-rut">RUT</label>
+            <input type="text" id="t-rut" placeholder="Ej: 12.345.678-9">
+          </div>
+        </div>
+
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="t-cargo">Cargo</label>
+            <input type="text" id="t-cargo" placeholder="Ej: Operario de producción">
+          </div>
+          <div>
+            <label for="t-ingreso">Fecha de ingreso</label>
+            <input type="date" id="t-ingreso">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="t-inoperancia">Datos de inoperancia / ausencias</label>
+          <textarea id="t-inoperancia" rows="3" style="width:100%; padding:10px 12px; border:1px solid var(--crema-oscura); border-radius:6px; font-size:14px; font-family:var(--font-cuerpo); background:var(--crema-suave); resize:vertical;" placeholder="Ej: Licencia médica 10-20 mayo 2025. Ausencia injustificada 3 jun 2025."></textarea>
+        </div>
+
+        <div class="form-row" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <button id="btn-guardar-trabajador">Guardar</button>
+          <button class="secundario" id="btn-cancelar-trabajador">Cancelar</button>
+        </div>
+        <div class="form-mensaje" id="t-mensaje"></div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filtros">
+        <input type="text" id="filtro-nombre" placeholder="Buscar por nombre o cargo...">
+        <div class="form-row checkbox" style="margin-bottom: 0;">
+          <input type="checkbox" id="filtro-inactivos">
+          <label for="filtro-inactivos">Mostrar inactivos</label>
+        </div>
+      </div>
+
+      <div class="form-mensaje" id="lista-mensaje"></div>
+
+      <!-- Tabla de trabajadores -->
+      <div class="tabla-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>RUT</th>
+              <th>Cargo</th>
+              <th>Fecha ingreso</th>
+              <th>Inoperancia / ausencias</th>
+              <th>Contrato</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-trabajadores-body">
+            <tr><td colspan="8" class="estado-vacio">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+  <footer>
+    Sistema de inventario interno · Mepiache
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/trabajadores.js"></script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Mepiache | Documentos de gestión</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .badge.vigente   { background-color: #e3f3e1; color: #2e7d32; }
+    .badge.vencido   { background-color: #fbe3e1; color: #b3261e; }
+    .badge.por-vencer { background-color: #fff3cd; color: #856404; }
+    .badge.archivado { background-color: #f0f0f0; color: #666; }
+
+    .categoria-pill {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+      background-color: var(--crema-oscura);
+      color: var(--negro);
+    }
+
+    .doc-descripcion {
+      font-size: 13px;
+      color: #5a4e38;
+      max-width: 260px;
+      white-space: pre-wrap;
+    }
+
+    .contrato-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .contrato-cell span.nombre-archivo {
+      font-size: 12px;
+      color: #8a7a5c;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .upload-label {
+      cursor: pointer;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      font-family: var(--font-cuerpo);
+      background-color: var(--crema-oscura);
+      border: 1px solid var(--crema-oscura);
+      border-radius: 6px;
+      color: var(--negro);
+      transition: filter 0.15s;
+      white-space: nowrap;
+    }
+    .upload-label:hover { filter: brightness(0.92); }
+
+    input[type="file"].file-hidden { display: none; }
+
+    .upload-progress { font-size: 12px; color: var(--dorado); }
+
+    .alerta-vencimiento {
+      background-color: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 10px 14px;
+      border-radius: 0 6px 6px 0;
+      font-size: 13px;
+      margin-bottom: 18px;
+      display: none;
+    }
+
+    .alerta-vencimiento strong { display: block; margin-bottom: 4px; }
+
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--crema-oscura);
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: var(--font-cuerpo);
+      background: var(--crema-suave);
+      resize: vertical;
+    }
+    textarea:focus {
+      outline: 2px solid var(--dorado-claro);
+      border-color: var(--dorado);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app-layout">
+    <main>
+
+      <a href="inicio.html" class="volver">&larr; Inicio</a>
+
+      <div class="panel-titulo">
+        <h2>Documentos de gestión</h2>
+        <button id="btn-nuevo-doc">+ Nuevo documento</button>
+      </div>
+
+      <!-- Alerta de vencimientos próximos -->
+      <div class="alerta-vencimiento" id="alerta-vencimiento">
+        <strong>⚠ Documentos próximos a vencer (30 días)</strong>
+        <span id="alerta-vencimiento-lista"></span>
+      </div>
+
+      <!-- Formulario: nuevo / editar documento -->
+      <div class="form-card form-card-toggle" id="form-doc" style="display: none; max-width: 100%;">
+        <h3 id="form-doc-titulo" style="margin-top: 0;">Nuevo documento</h3>
+        <input type="hidden" id="d-id">
+
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="d-titulo">Título *</label>
+            <input type="text" id="d-titulo" placeholder="Ej: Contrato de arrendamiento conservadoras">
+          </div>
+          <div>
+            <label for="d-categoria">Categoría *</label>
+            <select id="d-categoria">
+              <option value="">Seleccionar...</option>
+              <option value="Contrato proveedor">Contrato proveedor</option>
+              <option value="Equipo prestado / conservadora">Equipo prestado / conservadora</option>
+              <option value="Arriendo">Arriendo</option>
+              <option value="Servicio externo">Servicio externo</option>
+              <option value="Legal">Legal</option>
+              <option value="Financiero">Financiero</option>
+              <option value="Laboral">Laboral</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="d-contraparte">Empresa / persona</label>
+            <input type="text" id="d-contraparte" placeholder="Ej: Frigorífico del Sur Ltda.">
+          </div>
+          <div style="display:flex; gap:14px;">
+            <div style="flex:1;">
+              <label for="d-fecha-doc">Fecha del documento</label>
+              <input type="date" id="d-fecha-doc">
+            </div>
+            <div style="flex:1;">
+              <label for="d-fecha-venc">Fecha de vencimiento</label>
+              <input type="date" id="d-fecha-venc">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="d-descripcion">Descripción / notas</label>
+          <textarea id="d-descripcion" rows="3" placeholder="Ej: Conservadora prestada por 12 meses. Incluye mantención mensual. Valor cuota: $80.000."></textarea>
+        </div>
+
+        <div class="form-row" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <button id="btn-guardar-doc">Guardar</button>
+          <button class="secundario" id="btn-cancelar-doc">Cancelar</button>
+        </div>
+        <div class="form-mensaje" id="d-mensaje"></div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filtros">
+        <select id="filtro-categoria">
+          <option value="">Todas las categorías</option>
+          <option value="Contrato proveedor">Contrato proveedor</option>
+          <option value="Equipo prestado / conservadora">Equipo prestado / conservadora</option>
+          <option value="Arriendo">Arriendo</option>
+          <option value="Servicio externo">Servicio externo</option>
+          <option value="Legal">Legal</option>
+          <option value="Financiero">Financiero</option>
+          <option value="Laboral">Laboral</option>
+          <option value="Otro">Otro</option>
+        </select>
+        <input type="text" id="filtro-busqueda" placeholder="Buscar por título o empresa...">
+        <div class="form-row checkbox" style="margin-bottom:0;">
+          <input type="checkbox" id="filtro-archivados">
+          <label for="filtro-archivados">Mostrar archivados</label>
+        </div>
+      </div>
+
+      <div class="form-mensaje" id="lista-doc-mensaje"></div>
+
+      <!-- Tabla de documentos -->
+      <div class="tabla-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Categoría</th>
+              <th>Empresa / persona</th>
+              <th>Fecha doc.</th>
+              <th>Vencimiento</th>
+              <th>Descripción</th>
+              <th>Archivo</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-doc-body">
+            <tr><td colspan="9" class="estado-vacio">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+  <footer>
+    Sistema de inventario interno · Mepiache
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/documentos.js"></script>
+</body>
+</html>

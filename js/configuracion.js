@@ -5,13 +5,8 @@
 let _configProductos = [];
 
 (async () => {
-  const session = await initLayout('configuracion.html');
+  const session = await initLayout('configuracion.html', { soloAdmin: true });
   if (!session) return;
-
-  if (!esAdmin()) {
-    document.querySelector('#app-layout main').innerHTML = `<div class="estado-vacio">Esta pantalla está disponible solo para administradores.</div>`;
-    return;
-  }
 
   poblarSelects();
   await cargarYRenderizar();

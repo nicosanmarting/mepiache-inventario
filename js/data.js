@@ -486,6 +486,130 @@ async function getConteoPorId(conteoId) {
   return data;
 }
 
+// --------- Documentos de gestión (admin) ---------
+
+async function getDocumentosGestion() {
+  const { data, error } = await supabaseClient
+    .from('documentos_gestion')
+    .select('id, titulo, categoria, contraparte, descripcion, fecha_documento, fecha_vencimiento, archivo_path, archivo_nombre, vigente, created_at')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error cargando documentos:', error);
+    return [];
+  }
+  return data;
+}
+
+async function crearDocumentoGestion(datos) {
+  const payload = {
+    titulo: datos.titulo,
+    categoria: datos.categoria,
+    contraparte: datos.contraparte || null,
+    descripcion: datos.descripcion || null,
+    fecha_documento: datos.fecha_documento || null,
+    fecha_vencimiento: datos.fecha_vencimiento || null,
+    vigente: true,
+  };
+
+  const { data, error } = await supabaseClient
+    .from('documentos_gestion')
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creando documento:', error);
+    throw error;
+  }
+  return data;
+}
+
+async function actualizarDocumentoGestion(id, campos) {
+  const payload = { updated_at: new Date().toISOString() };
+
+  if ('titulo' in campos) payload.titulo = campos.titulo;
+  if ('categoria' in campos) payload.categoria = campos.categoria;
+  if ('contraparte' in campos) payload.contraparte = campos.contraparte || null;
+  if ('descripcion' in campos) payload.descripcion = campos.descripcion || null;
+  if ('fecha_documento' in campos) payload.fecha_documento = campos.fecha_documento || null;
+  if ('fecha_vencimiento' in campos) payload.fecha_vencimiento = campos.fecha_vencimiento || null;
+  if ('archivo_path' in campos) payload.archivo_path = campos.archivo_path || null;
+  if ('archivo_nombre' in campos) payload.archivo_nombre = campos.archivo_nombre || null;
+  if ('vigente' in campos) payload.vigente = !!campos.vigente;
+
+  const { error } = await supabaseClient
+    .from('documentos_gestion')
+    .update(payload)
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error actualizando documento:', error);
+    throw error;
+  }
+}
+
+// --------- Trabajadores (admin) ---------
+
+async function getTrabajadores() {
+  const { data, error } = await supabaseClient
+    .from('trabajadores')
+    .select('id, nombre, rut, cargo, fecha_ingreso, inoperancia, contrato_path, contrato_nombre, activo, created_at')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error cargando trabajadores:', error);
+    return [];
+  }
+  return data;
+}
+
+async function crearTrabajador(datos) {
+  const payload = {
+    nombre: datos.nombre,
+    rut: datos.rut || null,
+    cargo: datos.cargo || null,
+    fecha_ingreso: datos.fecha_ingreso || null,
+    inoperancia: datos.inoperancia || null,
+    activo: true,
+  };
+
+  const { data, error } = await supabaseClient
+    .from('trabajadores')
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creando trabajador:', error);
+    throw error;
+  }
+  return data;
+}
+
+async function actualizarTrabajador(id, campos) {
+  const payload = { updated_at: new Date().toISOString() };
+
+  if ('nombre' in campos) payload.nombre = campos.nombre;
+  if ('rut' in campos) payload.rut = campos.rut || null;
+  if ('cargo' in campos) payload.cargo = campos.cargo || null;
+  if ('fecha_ingreso' in campos) payload.fecha_ingreso = campos.fecha_ingreso || null;
+  if ('inoperancia' in campos) payload.inoperancia = campos.inoperancia || null;
+  if ('contrato_path' in campos) payload.contrato_path = campos.contrato_path || null;
+  if ('contrato_nombre' in campos) payload.contrato_nombre = campos.contrato_nombre || null;
+  if ('activo' in campos) payload.activo = !!campos.activo;
+
+  const { error } = await supabaseClient
+    .from('trabajadores')
+    .update(payload)
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error actualizando trabajador:', error);
+    throw error;
+  }
+}
+
 // --------- Métricas mensuales (basadas en movimientos_inventario) ---------
 
 const NOMBRES_MES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
