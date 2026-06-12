@@ -7,9 +7,15 @@
    con guardado de borrador y finalización (RPC).
    =========================== */
 
+let _conteoDetalleActual = [];
+let _conteoFinalizado = false;
+
 (async () => {
   const session = await initLayout('conteo.html');
   if (!session) return;
+
+  const filtroPendientes = document.getElementById('filtro-solo-pendientes');
+  if (filtroPendientes) filtroPendientes.addEventListener('change', renderTablaConteo);
 
   const params = new URLSearchParams(window.location.search);
   const conteoId = params.get('id');
@@ -133,11 +139,49 @@ async function mostrarConteo(conteoId) {
     : metaTexto;
 
   const detalle = await getConteoDetalle(conteoId);
+  _conteoDetalleActual = detalle;
+  _conteoFinalizado = finalizado;
 
+  renderTablaConteo();
+
+  const filtroRow = document.getElementById('filtro-pendientes-row');
+
+  if (!finalizado) {
+    document.getElementById('conteo-acciones').style.display = 'flex';
+    document.getElementById('conteo-resumen').style.display = 'none';
+    if (filtroRow) filtroRow.style.display = '';
+
+    document.getElementById('btn-guardar-borrador').onclick = () => onGuardar(conteoId, false);
+    document.getElementById('btn-finalizar').onclick = () => onGuardar(conteoId, true);
+  } else {
+    document.getElementById('conteo-acciones').style.display = 'none';
+    if (filtroRow) filtroRow.style.display = 'none';
+    renderResumenFinal(detalle);
+  }
+}
+
+// --------- Render de la tabla de conteo (respeta filtro "solo pendientes") ---------
+
+function filaEstaContada(d) {
+  return d.stock_contado !== null && d.stock_contado !== undefined && d.stock_contado !== '';
+}
+
+function renderTablaConteo() {
   const tbody = document.getElementById('tabla-conteo-body');
-  tbody.innerHTML = detalle.map(d => {
+  const filtroPendientes = document.getElementById('filtro-solo-pendientes');
+  const soloPendientes = !_conteoFinalizado && filtroPendientes && filtroPendientes.checked;
+
+  const filas = _conteoDetalleActual.filter(d => !soloPendientes || !filaEstaContada(d));
+
+  if (filas.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="estado-vacio">¡Todo contado! 🎉</td></tr>`;
+    actualizarProgreso();
+    return;
+  }
+
+  tbody.innerHTML = filas.map(d => {
     const sistema = Number(d.stock_sistema);
-    const contado = (d.stock_contado === null || d.stock_contado === undefined) ? '' : d.stock_contado;
+    const contado = filaEstaContada(d) ? d.stock_contado : '';
     let diffTexto = '';
     let diffClase = 'numero';
     if (contado !== '') {
@@ -147,45 +191,98 @@ async function mostrarConteo(conteoId) {
     }
 
     return `
-      <tr data-detalle-id="${d.id}">
+      <tr data-detalle-id="${d.id}" class="${contado !== '' ? 'fila-contada' : ''}">
         <td data-label="Código">${d.producto ? (d.producto.codigo || '') : ''}</td>
         <td data-label="Sabor">${d.producto ? d.producto.nombre : d.producto_id}</td>
         <td class="numero" data-label="Stock sistema">${sistema}</td>
         <td class="numero" data-label="Stock contado">
-          <input type="number" class="input-contado" value="${contado}" ${finalizado ? 'disabled' : ''}>
+          <input type="number" class="input-contado" value="${contado}" ${_conteoFinalizado ? 'disabled' : ''}>
         </td>
         <td class="${diffClase} diferencia-cell" data-label="Diferencia">${diffTexto}</td>
-        <td data-label="Observación"><input type="text" class="input-observacion" value="${(d.observacion || '').replace(/"/g, '&quot;')}" ${finalizado ? 'disabled' : ''}></td>
+        <td data-label="Observación"><input type="text" class="input-observacion" value="${(d.observacion || '').replace(/"/g, '&quot;')}" ${_conteoFinalizado ? 'disabled' : ''}></td>
       </tr>
     `;
   }).join('');
 
-  if (!finalizado) {
-    tbody.querySelectorAll('.input-contado').forEach(input => {
-      input.addEventListener('input', () => {
-        const tr = input.closest('tr');
-        const sistema = Number(tr.children[2].textContent);
-        const cell = tr.querySelector('.diferencia-cell');
-        if (input.value === '') {
-          cell.textContent = '';
-          cell.className = 'numero diferencia-cell';
-          return;
-        }
+  if (!_conteoFinalizado) {
+    bindFilaListeners();
+  }
+
+  actualizarProgreso();
+}
+
+function bindFilaListeners() {
+  const tbody = document.getElementById('tabla-conteo-body');
+
+  tbody.querySelectorAll('.input-contado').forEach(input => {
+    input.addEventListener('input', () => {
+      const tr = input.closest('tr');
+      const item = _conteoDetalleActual.find(d => String(d.id) === String(tr.dataset.detalleId));
+      const sistema = Number(tr.children[2].textContent);
+      const cell = tr.querySelector('.diferencia-cell');
+
+      if (input.value === '') {
+        cell.textContent = '';
+        cell.className = 'numero diferencia-cell';
+        tr.classList.remove('fila-contada');
+        if (item) item.stock_contado = null;
+      } else {
         const diff = Number(input.value) - sistema;
         cell.textContent = diff > 0 ? `+${diff}` : `${diff}`;
         cell.className = `numero diferencia-cell ${diff > 0 ? 'positiva' : diff < 0 ? 'negativa' : ''}`;
-      });
+        tr.classList.add('fila-contada');
+        if (item) item.stock_contado = input.value;
+      }
+      actualizarProgreso();
     });
 
-    document.getElementById('conteo-acciones').style.display = 'flex';
-    document.getElementById('conteo-resumen').style.display = 'none';
+    input.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const inputs = Array.from(tbody.querySelectorAll('.input-contado'));
+      const idx = inputs.indexOf(input);
+      const siguiente = inputs[idx + 1];
+      if (siguiente) {
+        siguiente.focus();
+        siguiente.select();
+      } else {
+        input.blur();
+      }
+    });
+  });
 
-    document.getElementById('btn-guardar-borrador').onclick = () => onGuardar(conteoId, false);
-    document.getElementById('btn-finalizar').onclick = () => onGuardar(conteoId, true);
-  } else {
-    document.getElementById('conteo-acciones').style.display = 'none';
-    renderResumenFinal(detalle);
-  }
+  tbody.querySelectorAll('.input-observacion').forEach(input => {
+    input.addEventListener('input', () => {
+      const tr = input.closest('tr');
+      const item = _conteoDetalleActual.find(d => String(d.id) === String(tr.dataset.detalleId));
+      if (item) item.observacion = input.value;
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const inputs = Array.from(tbody.querySelectorAll('.input-contado'));
+      const tr = input.closest('tr');
+      const filaInputs = Array.from(tbody.querySelectorAll('tr'));
+      const idxFila = filaInputs.indexOf(tr);
+      const siguiente = inputs[idxFila + 1];
+      if (siguiente) {
+        siguiente.focus();
+        siguiente.select();
+      } else {
+        input.blur();
+      }
+    });
+  });
+}
+
+function actualizarProgreso() {
+  const el = document.getElementById('conteo-progreso');
+  if (!el) return;
+  const total = _conteoDetalleActual.length;
+  const contados = _conteoDetalleActual.filter(filaEstaContada).length;
+  el.textContent = total ? `${contados} de ${total} contados` : '';
+  el.classList.toggle('completo', total > 0 && contados === total);
 }
 
 async function onGuardar(conteoId, finalizar) {
@@ -198,12 +295,12 @@ async function onGuardar(conteoId, finalizar) {
   btnFinalizar.disabled = true;
 
   try {
-    const filas = document.querySelectorAll('#tabla-conteo-body tr');
-    await Promise.all(Array.from(filas).map(tr => {
-      const detalleId = tr.dataset.detalleId;
-      const stockContado = tr.querySelector('.input-contado').value;
-      const observacion = tr.querySelector('.input-observacion').value.trim();
-      return guardarConteoDetalle(detalleId, { stockContado, observacion });
+    // Se guarda desde _conteoDetalleActual (no desde el DOM) para que las
+    // filas ocultas por el filtro "solo pendientes" también se incluyan.
+    await Promise.all(_conteoDetalleActual.map(d => {
+      const stockContado = filaEstaContada(d) ? d.stock_contado : '';
+      const observacion = (d.observacion || '').trim();
+      return guardarConteoDetalle(d.id, { stockContado, observacion });
     }));
 
     if (finalizar) {

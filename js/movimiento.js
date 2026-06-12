@@ -21,6 +21,7 @@ function initMovimientoPage({ paginaActiva, tipoMovimiento, motivos, mensajeExit
       actualizarStockActual();
     });
     document.getElementById('mov-producto').addEventListener('change', actualizarStockActual);
+    initCombobox('mov-producto', { placeholder: 'Buscar sabor o código...' });
 
     // Si llegamos desde "Stock actual" con ?producto=ID, preseleccionar.
     const params = new URLSearchParams(window.location.search);
@@ -31,6 +32,7 @@ function initMovimientoPage({ paginaActiva, tipoMovimiento, motivos, mensajeExit
       document.getElementById('mov-categoria').value = productoInicial.categoriaFormato;
       poblarProductos();
       document.getElementById('mov-producto').value = productoInicial.id;
+      refrescarCombobox('mov-producto');
     } else {
       poblarProductos();
     }
@@ -51,6 +53,7 @@ function initMovimientoPage({ paginaActiva, tipoMovimiento, motivos, mensajeExit
     const sel = document.getElementById('mov-producto');
     const productos = getProductosPorCategoria(categoria);
     sel.innerHTML = productos.map(p => `<option value="${p.id}">${p.codigo ? p.codigo + ' · ' : ''}${p.nombre}</option>`).join('');
+    refrescarCombobox('mov-producto');
   }
 
   function poblarMotivos() {

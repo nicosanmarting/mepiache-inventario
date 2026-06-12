@@ -453,6 +453,236 @@ td.numero, th.numero {
   display: block;
 }
 
+/* ---------- Toasts ---------- */
+
+#toast-contenedor {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 340px;
+}
+
+.toast {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: 0 4px 16px rgba(12, 12, 12, 0.2);
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  background-color: var(--negro);
+  color: var(--crema);
+}
+
+.toast.mostrar {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast.exito {
+  background-color: #2e7d32;
+  color: #fff;
+}
+
+.toast.error {
+  background-color: #b3261e;
+  color: #fff;
+}
+
+.toast.info {
+  background-color: var(--negro);
+  color: var(--crema);
+}
+
+@media (max-width: 700px) {
+  #toast-contenedor {
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    max-width: none;
+  }
+}
+
+/* ---------- Combobox de búsqueda (reemplaza <select> largos) ---------- */
+.combobox-wrapper {
+  position: relative;
+}
+
+.combobox-lista {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--crema-oscura);
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(12, 12, 12, 0.15);
+  z-index: 50;
+}
+
+.combobox-opcion {
+  padding: 9px 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.combobox-opcion:hover,
+.combobox-opcion.activa {
+  background-color: var(--crema-suave);
+}
+
+.combobox-grupo {
+  padding: 6px 12px 2px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #8a7a5c;
+}
+
+.combobox-vacio {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #8a7a5c;
+}
+
+/* ---------- Conteo: progreso y filtro de pendientes ---------- */
+.conteo-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.conteo-progreso {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--negro);
+}
+
+.conteo-progreso.completo {
+  color: #2e7d32;
+}
+
+.checkbox-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.checkbox-inline input[type="checkbox"] {
+  width: auto;
+}
+
+.tabla-conteo tbody tr.fila-contada td {
+  background-color: #eaf6ec;
+}
+
+.tabla-conteo tbody tr.fila-contada:hover td {
+  background-color: #dcf0e0;
+}
+
+/* ---------- Encabezados de tabla ordenables ---------- */
+.th-ordenable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.th-ordenable:hover {
+  background-color: #1a1a1a;
+}
+
+.th-ordenable::after {
+  content: '\21C5';
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  opacity: 0.4;
+}
+
+.th-ordenable.orden-asc::after {
+  content: '\25B2';
+  opacity: 1;
+}
+
+.th-ordenable.orden-desc::after {
+  content: '\25BC';
+  opacity: 1;
+}
+
+/* ---------- "Cargar más" (paginación simple en Historial) ---------- */
+.btn-cargar-mas {
+  display: block;
+  margin: 14px auto 0;
+}
+
+/* ---------- Buscador global (Inicio) ---------- */
+.buscador-global-wrapper {
+  position: relative;
+  max-width: 480px;
+  margin-bottom: 24px;
+}
+
+.buscador-global-resultados {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--crema-oscura);
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(12, 12, 12, 0.15);
+  z-index: 50;
+}
+
+.buscador-global-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  font-size: 14px;
+  color: var(--negro);
+  text-decoration: none;
+  border-bottom: 1px solid var(--crema-oscura);
+}
+
+.buscador-global-item:last-child {
+  border-bottom: none;
+}
+
+.buscador-global-item:hover {
+  background-color: var(--crema-suave);
+}
+
+.buscador-global-tipo {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #8a7a5c;
+  white-space: nowrap;
+}
+
+.buscador-global-vacio {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #8a7a5c;
+}
+
 .form-card .form-row.checkbox {
   flex-direction: row;
   align-items: center;

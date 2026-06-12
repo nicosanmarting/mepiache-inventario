@@ -7,6 +7,22 @@
 
 let _mpEsAdmin = false;
 
+const _mpSort = initTableSort('#tabla-mp thead', [
+  { tipo: 'texto', accesor: mp => mp.categoria },
+  { tipo: 'texto', accesor: mp => mp.codigo },
+  { tipo: 'texto', accesor: mp => mp.nombre },
+  { tipo: 'texto', accesor: mp => mp.unidadMedida },
+  { tipo: 'numero', accesor: mp => mp.stock },
+  { tipo: 'numero', accesor: mp => mp.stockMinimo },
+  { tipo: 'texto', accesor: mp => etiquetaEstadoStock(estadoStockMP(mp)) },
+  { tipo: 'texto', accesor: mp => mp.proveedorNombre },
+  { tipo: 'texto', accesor: mp => mp.proveedorContacto },
+  { tipo: 'numero', accesor: mp => mp.costoUnitario },
+  { tipo: 'numero', accesor: mp => mp.pedidoPromedio },
+  { tipo: 'texto', accesor: mp => mp.notas },
+  null,
+], () => renderTabla());
+
 // --------- Init ---------
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -21,10 +37,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   poblarSelectsEstaticos();
   bindUI();
+  aplicarFiltrosDesdeUrl();
   renderResumenCards();
   renderTabla();
   renderMovimientos();
 });
+
+function aplicarFiltrosDesdeUrl() {
+  const params = new URLSearchParams(window.location.search);
+
+  const busqueda = params.get('busqueda');
+  if (busqueda) document.getElementById('filtro-mp').value = busqueda;
+}
 
 // --------- UI binding ---------
 
@@ -64,6 +88,7 @@ function poblarSelectsEstaticos() {
   }
 
   // Select de materia prima en el formulario de movimiento
+  initCombobox('mp-mov-materia', { placeholder: 'Buscar materia prima...' });
   poblarSelectMateriaMovimiento();
 
   // Fecha por defecto: hoy
@@ -86,6 +111,7 @@ function poblarSelectMateriaMovimiento() {
       </optgroup>
     `;
   }).join('');
+  refrescarCombobox('mp-mov-materia');
 }
 
 // --------- Formulario: registrar movimiento ---------
@@ -98,6 +124,7 @@ function abrirFormularioMovimiento(materiaPrimaId = null) {
   poblarSelectMateriaMovimiento();
   if (materiaPrimaId) {
     document.getElementById('mp-mov-materia').value = materiaPrimaId;
+    refrescarCombobox('mp-mov-materia');
   }
 
   document.getElementById('mp-mov-tipo').value = 'entrada';
@@ -321,11 +348,11 @@ function renderTabla() {
   const estadoFiltro = document.getElementById('filtro-estado-mp').value;
   const mostrarInactivos = document.getElementById('filtro-inactivos-mp').checked;
 
-  const lista = (mostrarInactivos ? getMateriasPrimasTodas() : getMateriasPrimas())
+  const lista = _mpSort.ordenar((mostrarInactivos ? getMateriasPrimasTodas() : getMateriasPrimas())
     .filter(mp => !categoria || mp.categoria === categoria)
     .filter(mp => !busqueda || mp.nombre.toLowerCase().includes(busqueda) || (mp.codigo || '').toLowerCase().includes(busqueda))
     .filter(mp => !estadoFiltro || estadoStockMP(mp) === estadoFiltro)
-    .sort((a, b) => a.categoria.localeCompare(b.categoria) || (a.orden || 0) - (b.orden || 0));
+    .sort((a, b) => a.categoria.localeCompare(b.categoria) || (a.orden || 0) - (b.orden || 0)));
 
   const tbody = document.getElementById('tabla-mp-body');
   const colspan = _mpEsAdmin ? 13 : 8;

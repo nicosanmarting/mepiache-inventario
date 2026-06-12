@@ -19,7 +19,87 @@
     renderUltimoConteo(),
     renderUltimosMovimientos(),
   ]);
+
+  bindBuscadorGlobal();
 })();
+
+// --------- Buscador global ---------
+
+function _normalizarTexto(texto) {
+  return (texto ?? '').toString().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+
+function bindBuscadorGlobal() {
+  const input = document.getElementById('buscador-global');
+  const resultados = document.getElementById('buscador-global-resultados');
+  if (!input || !resultados) return;
+
+  input.addEventListener('input', () => {
+    const termino = input.value.trim();
+    const q = _normalizarTexto(termino);
+
+    if (q.length < 2) {
+      resultados.innerHTML = '';
+      resultados.style.display = 'none';
+      return;
+    }
+
+    const productos = getProductos()
+      .filter(p => _normalizarTexto(p.nombre).includes(q) || _normalizarTexto(p.codigo).includes(q))
+      .slice(0, 6)
+      .map(p => ({
+        tipo: 'Producto',
+        nombre: p.nombre,
+        extra: p.categoriaFormato,
+        href: `stock.html?busqueda=${encodeURIComponent(p.nombre)}`,
+      }));
+
+    const materias = getMateriasPrimas()
+      .filter(mp => _normalizarTexto(mp.nombre).includes(q) || _normalizarTexto(mp.codigo).includes(q))
+      .slice(0, 6)
+      .map(mp => ({
+        tipo: 'Materia prima',
+        nombre: mp.nombre,
+        extra: mp.categoria,
+        href: `materias-primas.html?busqueda=${encodeURIComponent(mp.nombre)}`,
+      }));
+
+    const items = [...productos, ...materias].slice(0, 10);
+
+    if (items.length === 0) {
+      resultados.innerHTML = `<div class="buscador-global-vacio">Sin resultados para "${esc(termino)}".</div>`;
+    } else {
+      resultados.innerHTML = items.map(it => `
+        <a class="buscador-global-item" href="${it.href}">
+          <span>${esc(it.nombre)}</span>
+          <span class="buscador-global-tipo">${it.tipo} · ${esc(it.extra)}</span>
+        </a>
+      `).join('');
+    }
+
+    resultados.style.display = 'block';
+  });
+
+  input.addEventListener('focus', () => {
+    if (resultados.innerHTML.trim()) resultados.style.display = 'block';
+  });
+
+  document.addEventListener('click', (e) => {
+    if (e.target !== input && !resultados.contains(e.target)) {
+      resultados.style.display = 'none';
+    }
+  });
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 // Tabla de productos y materias primas bajo stock mínimo o sin stock,
 // ordenados por urgencia (sin stock primero).

@@ -2,6 +2,22 @@
    Mepiache Inventario - Historial de movimientos
    =========================== */
 
+const HISTORIAL_PAGINA = 50;
+
+let _historialMovimientos = [];
+let _historialMostrados = HISTORIAL_PAGINA;
+
+const _historialSort = initTableSort('#tabla-historial thead', [
+  { tipo: 'texto', accesor: m => m.created_at },
+  { tipo: 'texto', accesor: m => m.producto ? m.producto.nombre : '' },
+  { tipo: 'texto', accesor: m => m.producto ? m.producto.categoriaFormato : '' },
+  { tipo: 'texto', accesor: m => etiquetaTipoMovimiento(m.tipo_movimiento) },
+  { tipo: 'numero', accesor: m => m.cantidad },
+  { tipo: 'numero', accesor: m => m.stock_despues },
+  { tipo: 'texto', accesor: m => m.motivo },
+  { tipo: 'texto', accesor: m => m.nota },
+], () => renderFilas());
+
 (async () => {
   const session = await initLayout('historial.html');
   if (!session) return;
@@ -12,6 +28,11 @@
 
   document.querySelectorAll('#filtros-historial select, #filtros-historial input').forEach(el => {
     el.addEventListener('change', renderTabla);
+  });
+
+  document.getElementById('btn-cargar-mas-historial').addEventListener('click', () => {
+    _historialMostrados += HISTORIAL_PAGINA;
+    renderFilas();
   });
 })();
 
@@ -48,12 +69,25 @@ async function renderTabla() {
     ));
   }
 
-  if (movimientos.length === 0) {
+  _historialMovimientos = movimientos;
+  _historialMostrados = HISTORIAL_PAGINA;
+  renderFilas();
+}
+
+function renderFilas() {
+  const tbody = document.getElementById('tabla-historial-body');
+  const btnCargarMas = document.getElementById('btn-cargar-mas-historial');
+
+  if (_historialMovimientos.length === 0) {
     tbody.innerHTML = `<tr><td colspan="8">No hay movimientos con ese filtro.</td></tr>`;
+    btnCargarMas.style.display = 'none';
     return;
   }
 
-  tbody.innerHTML = movimientos.map(m => `
+  const ordenados = _historialSort.ordenar(_historialMovimientos);
+  const visibles = ordenados.slice(0, _historialMostrados);
+
+  tbody.innerHTML = visibles.map(m => `
     <tr>
       <td>${formatearFechaHora(m.created_at)}</td>
       <td>${m.producto ? m.producto.nombre : m.producto_id}</td>
@@ -65,6 +99,8 @@ async function renderTabla() {
       <td>${m.nota || ''}</td>
     </tr>
   `).join('');
+
+  btnCargarMas.style.display = ordenados.length > visibles.length ? 'block' : 'none';
 }
 
 // --------- Comparar conteos ---------

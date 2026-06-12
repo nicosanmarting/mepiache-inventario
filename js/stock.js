@@ -13,6 +13,17 @@ const GRUPOS_CATEGORIA = {
 
 let _grupoActivo = null;
 
+const _stockSort = initTableSort('#tabla-stock thead', [
+  { tipo: 'texto', accesor: p => p.codigo },
+  { tipo: 'texto', accesor: p => p.nombre },
+  { tipo: 'texto', accesor: p => p.categoriaFormato },
+  { tipo: 'numero', accesor: p => p.stock },
+  { tipo: 'numero', accesor: p => p.stockMinimo },
+  { tipo: 'texto', accesor: p => etiquetaEstadoStock(estadoStock(p)) },
+  { tipo: 'texto', accesor: p => p.actualizado },
+  null,
+], () => renderTablaStock());
+
 (async () => {
   const session = await initLayout('stock.html');
   if (!session) return;
@@ -44,6 +55,9 @@ function aplicarFiltrosDesdeUrl() {
 
   const grupo = params.get('grupo');
   if (grupo && GRUPOS_CATEGORIA[grupo]) _grupoActivo = grupo;
+
+  const busqueda = params.get('busqueda');
+  if (busqueda) document.getElementById('filtro-sabor').value = busqueda;
 }
 
 function poblarFiltroCategoria() {
@@ -89,7 +103,7 @@ function productosFiltrados() {
 function renderTablaStock() {
   const tbody = document.getElementById('tabla-stock-body');
 
-  const productos = productosFiltrados();
+  const productos = _stockSort.ordenar(productosFiltrados());
 
   if (productos.length === 0) {
     tbody.innerHTML = `<tr><td colspan="8">No se encontraron productos con ese filtro.</td></tr>`;

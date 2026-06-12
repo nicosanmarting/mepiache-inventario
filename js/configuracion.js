@@ -127,8 +127,10 @@ async function onGuardarFila(tr) {
     await cargarProductos();
     await cargarYRenderizar();
     mostrarMensaje('config-mensaje', `Producto "${campos.nombre}" actualizado ✔`, 'exito');
+    mostrarToast(`"${campos.nombre}" actualizado ✔`, 'exito');
   } catch (err) {
     mostrarMensaje('config-mensaje', 'No se pudo guardar el producto. Intenta nuevamente.', 'error');
+    mostrarToast('No se pudo guardar el producto.', 'error');
     btn.disabled = false;
     btn.textContent = original;
   }
@@ -243,8 +245,10 @@ async function onGuardarFilaEncargado(tr) {
     await actualizarEncargado(id, campos);
     await cargarYRenderizarEncargados();
     mostrarMensaje('config-mensaje', `Encargado "${campos.nombre}" actualizado ✔`, 'exito');
+    mostrarToast(`"${campos.nombre}" actualizado ✔`, 'exito');
   } catch (err) {
     mostrarMensaje('config-mensaje', 'No se pudo guardar el encargado. Intenta nuevamente.', 'error');
+    mostrarToast('No se pudo guardar el encargado.', 'error');
     btn.disabled = false;
     btn.textContent = original;
   }
