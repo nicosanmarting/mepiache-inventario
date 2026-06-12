@@ -31,6 +31,7 @@ function renderResumen() {
     { label: 'Bacha 5 L', valor: totalPorCategoria['Bacha 5 L'] || 0, href: 'stock.html?categoria=' + encodeURIComponent('Bacha 5 L') },
     { label: 'Paletas (todas)', valor: totalPaletas, href: 'stock.html?grupo=paletas' },
     { label: 'Gelato Premium', valor: totalGelato, href: 'stock.html?grupo=gelato' },
+    { label: 'Sustancias', valor: totalPorCategoria['Sustancias'] || 0, href: 'stock.html?categoria=' + encodeURIComponent('Sustancias') },
     { label: 'Productos con stock bajo', valor: bajoStock, alerta: bajoStock > 0, href: 'stock.html?estado=bajo' },
     { label: 'Productos sin stock', valor: sinStock, alerta: sinStock > 0, href: 'stock.html?estado=sin_stock' },
   ];

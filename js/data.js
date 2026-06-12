@@ -14,6 +14,7 @@ const CATEGORIAS_FORMATO = [
   'Mis Paletas',
   'Gelato Premium Bachas',
   'Gelato Premium Caja 6x750ml',
+  'Sustancias',
 ];
 
 // Motivos sugeridos por tipo de movimiento.
