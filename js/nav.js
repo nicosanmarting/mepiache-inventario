@@ -32,6 +32,7 @@ const NAV_LINKS = [
   { href: 'historial.html', label: 'Historial' },
   { href: 'configuracion.html', label: 'Configuración', admin: true },
   { href: 'trabajadores.html', label: 'Trabajadores', admin: true },
+  { href: 'documentos.html', label: 'Documentos', admin: true },
 ];
 
 let _sesionActual = null;
@@ -46,7 +47,12 @@ function getSesion() {
 
 // Dibuja header + nav dentro de #app-layout y valida la sesión.
 // Devuelve la sesión activa, o null si redirigió a login.
-async function initLayout(paginaActiva) {
+// Si { soloAdmin: true }, redirige a inicio si el usuario no es admin.
+async function initLayout(paginaActiva, { soloAdmin = false } = {}) {
+  // Ocultar el body de inmediato para evitar el flash de contenido
+  // antes de que la validación de sesión/rol termine.
+  document.body.style.visibility = 'hidden';
+
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (!session) {
     window.location.href = 'index.html';
@@ -55,6 +61,12 @@ async function initLayout(paginaActiva) {
   _sesionActual = session;
 
   const admin = esAdmin();
+
+  if (soloAdmin && !admin) {
+    window.location.href = 'inicio.html';
+    return null;
+  }
+
   const links = NAV_LINKS.filter(l => !l.admin || admin);
 
   const headerHtml = `
@@ -81,6 +93,7 @@ async function initLayout(paginaActiva) {
   await cargarProductos();
   await cargarEncargados();
 
+  document.body.style.visibility = 'visible';
   return session;
 }
 

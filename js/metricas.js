@@ -9,13 +9,8 @@ let _chartSalidasCategoria = null;
 let _chartMermasMotivo = null;
 
 (async () => {
-  const session = await initLayout('metricas.html');
+  const session = await initLayout('metricas.html', { soloAdmin: true });
   if (!session) return;
-
-  if (!esAdmin()) {
-    document.querySelector('#app-layout main').innerHTML = `<div class="estado-vacio">Esta pantalla está disponible solo para administradores.</div>`;
-    return;
-  }
 
   await renderTodo();
 
