@@ -7,10 +7,12 @@
    el catálogo de productos en caché.
 
    Roles:
-   - "admin": ve Merma/ajuste, Métricas y Configuración
-     además de las pantallas operativas.
+   - "admin": ve además el link "Panel admin", que reúne
+     Métricas, Configuración, Merma/ajuste, Trabajadores,
+     Conservadoras, Mantención de equipos y Documentos.
    - "operativo": ve Inicio, Nuevo conteo, Producción,
-     Venta/salida, Stock actual e Historial.
+     Venta/salida, Clientes, Materias primas, Stock actual
+     e Historial.
 
    Para dar permisos de administrador a otro usuario,
    agregar su email (en minúsculas) a ADMIN_EMAILS.
@@ -28,15 +30,9 @@ const NAV_LINKS = [
   { href: 'venta.html', label: 'Venta / salida' },
   { href: 'clientes.html', label: 'Clientes' },
   { href: 'materias-primas.html', label: 'Materias primas' },
-  { href: 'merma.html', label: 'Merma / ajuste', admin: true },
   { href: 'stock.html', label: 'Stock actual' },
-  { href: 'metricas.html', label: 'Métricas', admin: true },
   { href: 'historial.html', label: 'Historial' },
-  { href: 'configuracion.html', label: 'Configuración', admin: true },
-  { href: 'trabajadores.html', label: 'Trabajadores', admin: true },
-  { href: 'conservadoras.html', label: 'Conservadoras', admin: true },
-  { href: 'equipos.html', label: 'Mantención equipos', admin: true },
-  { href: 'documentos.html', label: 'Documentos', admin: true },
+  { href: 'admin.html', label: 'Panel admin', admin: true },
 ];
 
 let _sesionActual = null;

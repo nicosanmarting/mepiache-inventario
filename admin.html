@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Mepiache | Panel admin</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div id="app-layout">
+    <main>
+
+      <div class="panel-titulo">
+        <h2>Panel admin</h2>
+      </div>
+
+      <div class="acciones-grid">
+        <a href="metricas.html" class="btn-grande acento"><span class="icono">📊</span>Métricas</a>
+        <a href="configuracion.html" class="btn-grande"><span class="icono">⚙️</span>Configuración</a>
+        <a href="merma.html" class="btn-grande"><span class="icono">⚠️</span>Merma / ajuste</a>
+        <a href="trabajadores.html" class="btn-grande"><span class="icono">👥</span>Trabajadores</a>
+        <a href="conservadoras.html" class="btn-grande"><span class="icono">🧊</span>Conservadoras</a>
+        <a href="equipos.html" class="btn-grande" id="btn-equipos"><span class="icono">🔧</span>Mantención equipos</a>
+        <a href="documentos.html" class="btn-grande"><span class="icono">📁</span>Documentos</a>
+      </div>
+
+    </main>
+  </div>
+
+  <footer>
+    Sistema de inventario interno · Mepiache
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
