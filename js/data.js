@@ -26,7 +26,7 @@ let _productosCache = null;
 async function cargarProductos() {
   const { data, error } = await supabaseClient
     .from('productos')
-    .select('id, sabor, codigo, categoria_formato, linea, unidad_conteo, contenido, unidad_contenido, stock_actual, stock_minimo, orden, updated_at')
+    .select('id, sabor, codigo, categoria_formato, linea, unidad_conteo, contenido, unidad_contenido, stock_actual, stock_minimo, precio_venta, orden, updated_at')
     .eq('activo', true)
     .order('categoria_formato', { ascending: true })
     .order('orden', { ascending: true });
@@ -48,6 +48,7 @@ async function cargarProductos() {
     unidadContenido: p.unidad_contenido,
     stock: Number(p.stock_actual) || 0,
     stockMinimo: Number(p.stock_minimo) || 0,
+    precioVenta: Number(p.precio_venta) || 0,
     orden: p.orden,
     actualizado: p.updated_at,
   }));
@@ -222,7 +223,7 @@ async function actualizarCliente(id, campos) {
 async function getProductosTodos() {
   const { data, error } = await supabaseClient
     .from('productos')
-    .select('id, sabor, codigo, categoria_formato, linea, unidad_conteo, contenido, unidad_contenido, stock_actual, stock_minimo, orden, activo, updated_at')
+    .select('id, sabor, codigo, categoria_formato, linea, unidad_conteo, contenido, unidad_contenido, stock_actual, stock_minimo, precio_venta, orden, activo, updated_at')
     .order('categoria_formato', { ascending: true })
     .order('orden', { ascending: true });
 
@@ -242,6 +243,7 @@ async function getProductosTodos() {
     unidadContenido: p.unidad_contenido,
     stock: Number(p.stock_actual) || 0,
     stockMinimo: Number(p.stock_minimo) || 0,
+    precioVenta: Number(p.precio_venta) || 0,
     orden: p.orden,
     activo: p.activo,
     actualizado: p.updated_at,
@@ -263,6 +265,7 @@ async function actualizarProducto(id, campos) {
   if ('contenido' in campos) payload.contenido = (campos.contenido === '' || campos.contenido === null) ? null : Number(campos.contenido);
   if ('unidadContenido' in campos) payload.unidad_contenido = campos.unidadContenido || null;
   if ('stockMinimo' in campos) payload.stock_minimo = Number(campos.stockMinimo) || 0;
+  if ('precioVenta' in campos) payload.precio_venta = Number(campos.precioVenta) || 0;
   if ('orden' in campos) payload.orden = (campos.orden === '' || campos.orden === null) ? null : Number(campos.orden);
   if ('activo' in campos) payload.activo = !!campos.activo;
 
@@ -290,6 +293,7 @@ async function crearProducto(datos) {
     unidad_contenido: datos.unidadContenido || null,
     stock_actual: Number(datos.stockActual) || 0,
     stock_minimo: Number(datos.stockMinimo) || 0,
+    precio_venta: Number(datos.precioVenta) || 0,
     orden: (datos.orden === '' || datos.orden === undefined) ? null : Number(datos.orden),
     activo: true,
   };
@@ -1211,6 +1215,11 @@ function formatearMes(mesStr) {
   return `${NOMBRES_MES[mes - 1]} ${anio}`;
 }
 
+// Formatea un monto como pesos chilenos, ej: $12.345
+function formatearCLP(valor) {
+  return '$' + Math.round(Number(valor) || 0).toLocaleString('es-CL');
+}
+
 function _mesDeFecha(fechaStr) {
   return fechaStr ? fechaStr.slice(0, 7) : '';
 }
@@ -1263,6 +1272,14 @@ async function getMetricasMensuales(numMeses = 6) {
       .reduce((s, m) => s + Number(m.cantidad), 0)
   );
 
+  const ingresosPorMes = meses.map(mes =>
+    movimientos.filter(m => m.tipo_movimiento === 'venta_salida' && _mesDeFecha(m.fecha) === mes)
+      .reduce((s, m) => {
+        const p = getProductoPorId(m.producto_id);
+        return s + Number(m.cantidad) * (p ? p.precioVenta : 0);
+      }, 0)
+  );
+
   const resumen = getResumenStock();
   const stockTotal = Object.values(resumen.totalPorCategoria).reduce((s, v) => s + v, 0);
 
@@ -1275,12 +1292,15 @@ async function getMetricasMensuales(numMeses = 6) {
     producidoPorMes,
     vendidoPorMes,
     mermaPorMes,
+    ingresosPorMes,
     movimientos,
     producidoMesActual: idxActual >= 0 ? producidoPorMes[idxActual] : 0,
     vendidoMesActual: idxActual >= 0 ? vendidoPorMes[idxActual] : 0,
     mermaMesActual: idxActual >= 0 ? mermaPorMes[idxActual] : 0,
+    ingresosMesActual: idxActual >= 0 ? ingresosPorMes[idxActual] : 0,
     producidoMesAnterior: idxAnterior >= 0 ? producidoPorMes[idxAnterior] : 0,
     vendidoMesAnterior: idxAnterior >= 0 ? vendidoPorMes[idxAnterior] : 0,
+    ingresosMesAnterior: idxAnterior >= 0 ? ingresosPorMes[idxAnterior] : 0,
     stockTotal,
   };
 }

@@ -66,7 +66,7 @@ function renderTabla() {
     .sort((a, b) => a.categoriaFormato.localeCompare(b.categoriaFormato) || (a.orden || 0) - (b.orden || 0));
 
   if (productos.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="11">No se encontraron productos con ese filtro.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="12">No se encontraron productos con ese filtro.</td></tr>`;
     return;
   }
 
@@ -86,6 +86,7 @@ function renderTabla() {
       <td class="numero"><input type="number" step="any" data-campo="contenido" value="${p.contenido ?? ''}"></td>
       <td><input type="text" data-campo="unidadContenido" value="${p.unidadContenido || ''}"></td>
       <td class="numero"><input type="number" step="any" data-campo="stockMinimo" value="${p.stockMinimo ?? 0}"></td>
+      <td class="numero"><input type="number" step="any" min="0" data-campo="precioVenta" value="${p.precioVenta ?? 0}"></td>
       <td class="numero"><input type="number" data-campo="orden" value="${p.orden ?? ''}"></td>
       <td><input type="checkbox" data-campo="activo" ${p.activo ? 'checked' : ''}></td>
       <td><div class="acciones-tabla"><button class="btn-guardar-fila">Guardar</button></div></td>
@@ -141,6 +142,7 @@ function ocultarFormNuevo() {
   document.getElementById('np-unidad-conteo').value = 'unidades';
   document.getElementById('np-stock-actual').value = '0';
   document.getElementById('np-stock-minimo').value = '0';
+  document.getElementById('np-precio-venta').value = '0';
   document.getElementById('np-mensaje').style.display = 'none';
 }
 
@@ -163,6 +165,7 @@ async function onCrearProducto() {
     unidadContenido: document.getElementById('np-unidad-contenido').value.trim(),
     stockActual: document.getElementById('np-stock-actual').value,
     stockMinimo: document.getElementById('np-stock-minimo').value,
+    precioVenta: document.getElementById('np-precio-venta').value,
     orden: document.getElementById('np-orden').value,
   };
 

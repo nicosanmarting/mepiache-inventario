@@ -7,6 +7,7 @@ let _chartProdVentas = null;
 let _chartStockCategoria = null;
 let _chartSalidasCategoria = null;
 let _chartMermasMotivo = null;
+let _chartIngresos = null;
 
 (async () => {
   const session = await initLayout('metricas.html', { soloAdmin: true });
@@ -26,6 +27,7 @@ async function renderTodo() {
   renderGraficoStockCategoria(resumen);
   renderGraficoSalidasCategoria(m);
   renderGraficoMermasMotivo(m);
+  renderGraficoIngresos(m);
   renderRanking(m);
   renderRankingStock();
 }
@@ -40,11 +42,13 @@ function calcularVariacion(actual, anterior) {
 function renderCards(m, resumen) {
   const varProducido = calcularVariacion(m.producidoMesActual, m.producidoMesAnterior);
   const varVendido = calcularVariacion(m.vendidoMesActual, m.vendidoMesAnterior);
+  const varIngresos = calcularVariacion(m.ingresosMesActual, m.ingresosMesAnterior);
 
   const cards = [
     { label: 'Stock total', valor: m.stockTotal },
     { label: 'Producido este mes', valor: m.producidoMesActual, variacion: varProducido },
     { label: 'Vendido/salidas este mes', valor: m.vendidoMesActual, variacion: varVendido },
+    { label: 'Ingresos este mes', valor: formatearCLP(m.ingresosMesActual), variacion: varIngresos },
     { label: 'Mermas este mes', valor: m.mermaMesActual },
     { label: 'Productos con stock bajo', valor: resumen.bajoStock, alerta: resumen.bajoStock > 0 },
     { label: 'Productos sin stock', valor: resumen.sinStock, alerta: resumen.sinStock > 0 },
@@ -244,6 +248,40 @@ function renderGraficoMermasMotivo(m) {
   });
 }
 
+function renderGraficoIngresos(m) {
+  const ctx = document.getElementById('grafico-ingresos');
+  if (!ctx) return;
+  const labels = m.meses.map(formatearMes);
+
+  if (_chartIngresos) _chartIngresos.destroy();
+
+  _chartIngresos = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Ingresos por ventas/salidas',
+        data: m.ingresosPorMes,
+        backgroundColor: COLOR_DORADO,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { callback: (value) => formatearCLP(value) },
+        },
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (ctx) => formatearCLP(ctx.parsed.y) } },
+      },
+    },
+  });
+}
+
 // --------- Ranking ---------
 
 function renderRanking(m) {
@@ -251,7 +289,7 @@ function renderRanking(m) {
   const ranking = rankingVentas(m.movimientos);
 
   if (ranking.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="3">Sin ventas/salidas registradas en el período.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4">Sin ventas/salidas registradas en el período.</td></tr>`;
     return;
   }
 
@@ -260,6 +298,7 @@ function renderRanking(m) {
       <td>${r.producto.nombre}</td>
       <td>${r.producto.categoriaFormato}</td>
       <td class="numero">${r.cantidad}</td>
+      <td class="numero">${formatearCLP(r.cantidad * (r.producto.precioVenta || 0))}</td>
     </tr>
   `).join('');
 }
