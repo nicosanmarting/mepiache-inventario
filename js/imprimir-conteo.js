@@ -42,6 +42,7 @@ function renderHoja() {
     seccionHelados(dia, hora, encargado),
     seccionPaletas(dia, hora, encargado),
     seccionGelato(dia, hora, encargado),
+    seccionSustancias(dia, hora, encargado),
   ].join('');
 }
 
@@ -191,6 +192,40 @@ function seccionGelato(dia, hora, encargado) {
               </tr>
             `;
           }).join('')}
+        </tbody>
+      </table>
+      ${seccionMateriaPrima()}
+    </section>
+  `;
+}
+
+// --------- SUSTANCIAS ---------
+
+function seccionSustancias(dia, hora, encargado) {
+  const productos = getProductosPorCategoria('Sustancias');
+
+  return `
+    <section class="hoja-pagina">
+      ${encabezado(dia, hora, encargado)}
+      <h3 class="hoja-seccion-titulo">SUSTANCIAS</h3>
+      <table class="tabla-impresion">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>PRODUCTO</th>
+            <th>FORMATO</th>
+            <th>CAJAS</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${productos.map(p => `
+            <tr>
+              <td>${p.codigo || ''}</td>
+              <td>${p.nombre}</td>
+              <td>${p.contenido} ${p.unidad_contenido || ''}</td>
+              <td class="celda-vacia"></td>
+            </tr>
+          `).join('')}
         </tbody>
       </table>
       ${seccionMateriaPrima()}
