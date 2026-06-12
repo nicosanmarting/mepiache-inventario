@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Mepiache | Materias primas</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .notas-cell {
+      font-size: 13px;
+      color: #8a7a5c;
+      max-width: 220px;
+    }
+
+    .col-admin {
+      display: none;
+    }
+
+    body.es-admin .col-admin {
+      display: table-cell;
+    }
+
+    .form-card.ancho {
+      max-width: 640px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app-layout">
+    <main>
+
+      <a href="inicio.html" class="volver">&larr; Inicio</a>
+
+      <div class="panel-titulo">
+        <h2>Materias primas</h2>
+        <div style="display: flex; gap: 10px;">
+          <button id="btn-nuevo-movimiento">+ Registrar movimiento</button>
+          <button class="secundario" id="btn-nueva-mp" style="display: none;">+ Nueva materia prima</button>
+        </div>
+      </div>
+
+      <div class="resumen-cards" id="resumen-cards">
+        <!-- generado por JS -->
+      </div>
+
+      <!-- Formulario: registrar movimiento (entrada / salida / ajuste) -->
+      <div class="form-card form-card-toggle ancho" id="form-movimiento" style="display: none;">
+        <h3 style="margin-top: 0;">Registrar movimiento de stock</h3>
+
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="mp-mov-materia">Materia prima</label>
+            <select id="mp-mov-materia" required></select>
+          </div>
+          <div>
+            <label for="mp-mov-tipo">Tipo</label>
+            <select id="mp-mov-tipo" required>
+              <option value="entrada">Entrada (compra/recepción)</option>
+              <option value="salida">Salida (consumo)</option>
+              <option value="ajuste">Ajuste de stock</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="mp-mov-cantidad">Cantidad</label>
+            <input type="number" id="mp-mov-cantidad" step="0.01" required>
+          </div>
+          <div>
+            <label for="mp-mov-fecha">Fecha</label>
+            <input type="date" id="mp-mov-fecha" required>
+          </div>
+        </div>
+
+        <div class="form-row" id="mp-mov-motivo-row">
+          <label for="mp-mov-motivo">Motivo</label>
+          <select id="mp-mov-motivo"></select>
+        </div>
+
+        <div class="form-row">
+          <label for="mp-mov-nota">Nota (opcional)</label>
+          <input type="text" id="mp-mov-nota" placeholder="Ej: proveedor, lote, observación...">
+        </div>
+
+        <div class="form-row checkbox" id="mp-mov-forzar-row" style="display: none;">
+          <input type="checkbox" id="mp-mov-forzar">
+          <label for="mp-mov-forzar">Permitir que el stock quede en negativo</label>
+        </div>
+
+        <div class="form-row" style="display: flex; gap: 10px; flex-direction: row;">
+          <button id="btn-guardar-movimiento">Guardar movimiento</button>
+          <button class="secundario" id="btn-cancelar-movimiento">Cancelar</button>
+        </div>
+        <div class="form-mensaje" id="mp-mov-mensaje"></div>
+      </div>
+
+      <!-- Formulario: nueva / editar materia prima (solo admin) -->
+      <div class="form-card form-card-toggle ancho" id="form-mp" style="display: none;">
+        <h3 id="mp-form-titulo" style="margin-top: 0;">Nueva materia prima</h3>
+        <input type="hidden" id="mp-id">
+
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="mp-nombre">Nombre *</label>
+            <input type="text" id="mp-nombre" placeholder="Ej: Frutilla">
+          </div>
+          <div>
+            <label for="mp-codigo">Código (opcional)</label>
+            <input type="text" id="mp-codigo" placeholder="Ej: MP-052">
+          </div>
+        </div>
+
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="mp-categoria">Categoría</label>
+            <select id="mp-categoria"></select>
+          </div>
+          <div>
+            <label for="mp-unidad">Unidad de medida</label>
+            <select id="mp-unidad">
+              <option value="kg">kg</option>
+              <option value="g">g</option>
+              <option value="L">L</option>
+              <option value="ml">ml</option>
+              <option value="unidad">unidad</option>
+              <option value="caja">caja</option>
+              <option value="bolsa">bolsa</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="mp-stock-inicial">Stock inicial</label>
+            <input type="number" id="mp-stock-inicial" step="0.01" value="0">
+          </div>
+          <div>
+            <label for="mp-stock-minimo">Stock mínimo</label>
+            <input type="number" id="mp-stock-minimo" step="0.01" value="0">
+          </div>
+        </div>
+
+        <h4 style="margin: 18px 0 8px;">Información de proveedor (solo admin)</h4>
+
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="mp-proveedor-nombre">Proveedor</label>
+            <input type="text" id="mp-proveedor-nombre" placeholder="Ej: Distribuidora ABC">
+          </div>
+          <div>
+            <label for="mp-proveedor-contacto">Contacto proveedor</label>
+            <input type="text" id="mp-proveedor-contacto" placeholder="Ej: +56 9 1234 5678 / correo">
+          </div>
+        </div>
+
+        <div class="form-row dos-columnas">
+          <div>
+            <label for="mp-costo">Costo unitario (CLP)</label>
+            <input type="number" id="mp-costo" step="1" placeholder="Ej: 4500">
+          </div>
+          <div>
+            <label for="mp-pedido">Pedido promedio</label>
+            <input type="number" id="mp-pedido" step="0.01" placeholder="Ej: 20">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="mp-notas">Notas</label>
+          <input type="text" id="mp-notas" placeholder="Ej: pedir con 1 semana de anticipación...">
+        </div>
+
+        <div class="form-row" style="display: flex; gap: 10px; flex-direction: row;">
+          <button id="btn-guardar-mp">Guardar</button>
+          <button class="secundario" id="btn-cancelar-mp">Cancelar</button>
+        </div>
+        <div class="form-mensaje" id="mp-mensaje"></div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filtros">
+        <select id="filtro-categoria-mp">
+          <option value="">Todas las categorías</option>
+        </select>
+        <input type="text" id="filtro-mp" placeholder="Buscar por nombre o código...">
+        <select id="filtro-estado-mp">
+          <option value="">Todos los estados</option>
+          <option value="ok">OK</option>
+          <option value="bajo">Stock bajo</option>
+          <option value="sin_stock">Sin stock</option>
+        </select>
+        <div class="form-row checkbox" style="margin-bottom: 0;">
+          <input type="checkbox" id="filtro-inactivos-mp">
+          <label for="filtro-inactivos-mp">Mostrar inactivas</label>
+        </div>
+      </div>
+
+      <div class="form-mensaje" id="lista-mensaje-mp"></div>
+
+      <!-- Tabla -->
+      <div class="tabla-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Categoría</th>
+              <th>Código</th>
+              <th>Nombre</th>
+              <th>Unidad</th>
+              <th class="numero">Stock</th>
+              <th class="numero">Mínimo</th>
+              <th>Estado</th>
+              <th class="col-admin">Proveedor</th>
+              <th class="col-admin">Contacto</th>
+              <th class="col-admin numero">Costo unit.</th>
+              <th class="col-admin numero">Pedido prom.</th>
+              <th class="col-admin">Notas</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-mp-body">
+            <tr><td colspan="13" class="estado-vacio">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel-titulo" style="margin-top: 28px;">
+        <h2>Últimos movimientos</h2>
+      </div>
+      <div class="tabla-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Materia prima</th>
+              <th>Tipo</th>
+              <th class="numero">Cantidad</th>
+              <th>Motivo / nota</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-mov-mp-body">
+            <!-- generado por JS -->
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+  <footer>
+    Sistema de inventario interno · Mepiache
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/materias-primas.js"></script>
+</body>
+</html>

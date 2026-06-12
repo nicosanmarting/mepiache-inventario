@@ -27,6 +27,7 @@ const NAV_LINKS = [
   { href: 'produccion.html', label: 'Producción' },
   { href: 'venta.html', label: 'Venta / salida' },
   { href: 'clientes.html', label: 'Clientes' },
+  { href: 'materias-primas.html', label: 'Materias primas' },
   { href: 'merma.html', label: 'Merma / ajuste', admin: true },
   { href: 'stock.html', label: 'Stock actual' },
   { href: 'metricas.html', label: 'Métricas', admin: true },
@@ -95,6 +96,7 @@ async function initLayout(paginaActiva, { soloAdmin = false } = {}) {
   await cargarProductos();
   await cargarEncargados();
   await cargarClientes();
+  await cargarMateriasPrimas();
 
   document.body.style.visibility = 'visible';
   return session;

@@ -792,6 +792,246 @@ async function actualizarConservadora(id, campos) {
   }
 }
 
+// --------- Materias primas ---------
+
+// Orden sugerido de categorías en la UI (Materias primas).
+const CATEGORIAS_MATERIA_PRIMA = [
+  'Frutas y pulpas',
+  'Chocolates y coberturas',
+  'Salsas y manjar',
+  'Insumos secos',
+  'Pregel (gelato premium)',
+  'Lácteos y frescos',
+  'Hierbas y aromáticas',
+  'Envases y empaque',
+];
+
+const MOTIVOS_ENTRADA_MP = ['Compra', 'Donación', 'Devolución', 'Otro'];
+const MOTIVOS_SALIDA_MP = ['Uso en producción', 'Vencimiento', 'Merma', 'Otro'];
+
+let _materiasPrimasCache = null;
+
+async function cargarMateriasPrimas() {
+  const { data, error } = await supabaseClient
+    .from('materias_primas')
+    .select('id, codigo, nombre, categoria, unidad_medida, stock_actual, stock_minimo, proveedor_nombre, proveedor_contacto, costo_unitario, pedido_promedio, notas, activo, orden, updated_at')
+    .order('categoria', { ascending: true })
+    .order('orden', { ascending: true });
+
+  if (error) {
+    console.error('Error cargando materias primas:', error);
+    _materiasPrimasCache = [];
+    return _materiasPrimasCache;
+  }
+
+  _materiasPrimasCache = data.map(mp => ({
+    id: mp.id,
+    codigo: mp.codigo,
+    nombre: mp.nombre,
+    categoria: mp.categoria,
+    unidadMedida: mp.unidad_medida,
+    stock: Number(mp.stock_actual) || 0,
+    stockMinimo: Number(mp.stock_minimo) || 0,
+    proveedorNombre: mp.proveedor_nombre,
+    proveedorContacto: mp.proveedor_contacto,
+    costoUnitario: mp.costo_unitario != null ? Number(mp.costo_unitario) : null,
+    pedidoPromedio: mp.pedido_promedio != null ? Number(mp.pedido_promedio) : null,
+    notas: mp.notas,
+    activo: mp.activo,
+    orden: mp.orden,
+    actualizado: mp.updated_at,
+  }));
+
+  return _materiasPrimasCache;
+}
+
+function getMateriasPrimas() {
+  return (_materiasPrimasCache || []).filter(mp => mp.activo);
+}
+
+function getMateriasPrimasTodas() {
+  return _materiasPrimasCache || [];
+}
+
+function getMateriaPrimaPorId(id) {
+  return (_materiasPrimasCache || []).find(mp => mp.id === id) || null;
+}
+
+function getCategoriasMateriaPrima() {
+  return CATEGORIAS_MATERIA_PRIMA;
+}
+
+function getMateriasPrimasPorCategoria(categoria) {
+  return getMateriasPrimas()
+    .filter(mp => mp.categoria === categoria)
+    .sort((a, b) => (a.orden || 0) - (b.orden || 0));
+}
+
+async function crearMateriaPrima(datos) {
+  const payload = {
+    codigo: datos.codigo || null,
+    nombre: datos.nombre,
+    categoria: datos.categoria,
+    unidad_medida: datos.unidad_medida || 'unidad',
+    stock_actual: Number(datos.stock_actual) || 0,
+    stock_minimo: Number(datos.stock_minimo) || 0,
+    proveedor_nombre: datos.proveedor_nombre || null,
+    proveedor_contacto: datos.proveedor_contacto || null,
+    costo_unitario: (datos.costo_unitario === '' || datos.costo_unitario == null) ? null : Number(datos.costo_unitario),
+    pedido_promedio: (datos.pedido_promedio === '' || datos.pedido_promedio == null) ? null : Number(datos.pedido_promedio),
+    notas: datos.notas || null,
+    activo: true,
+  };
+
+  const { data, error } = await supabaseClient
+    .from('materias_primas')
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creando materia prima:', error);
+    throw error;
+  }
+
+  if (_materiasPrimasCache) {
+    _materiasPrimasCache.push({
+      id: data.id,
+      codigo: data.codigo,
+      nombre: data.nombre,
+      categoria: data.categoria,
+      unidadMedida: data.unidad_medida,
+      stock: Number(data.stock_actual) || 0,
+      stockMinimo: Number(data.stock_minimo) || 0,
+      proveedorNombre: data.proveedor_nombre,
+      proveedorContacto: data.proveedor_contacto,
+      costoUnitario: data.costo_unitario != null ? Number(data.costo_unitario) : null,
+      pedidoPromedio: data.pedido_promedio != null ? Number(data.pedido_promedio) : null,
+      notas: data.notas,
+      activo: data.activo,
+      orden: data.orden,
+      actualizado: data.updated_at,
+    });
+  }
+
+  return data;
+}
+
+async function actualizarMateriaPrima(id, campos) {
+  const payload = { updated_at: new Date().toISOString() };
+
+  if ('codigo' in campos) payload.codigo = campos.codigo || null;
+  if ('nombre' in campos) payload.nombre = campos.nombre;
+  if ('categoria' in campos) payload.categoria = campos.categoria;
+  if ('unidad_medida' in campos) payload.unidad_medida = campos.unidad_medida || 'unidad';
+  if ('stock_minimo' in campos) payload.stock_minimo = Number(campos.stock_minimo) || 0;
+  if ('proveedor_nombre' in campos) payload.proveedor_nombre = campos.proveedor_nombre || null;
+  if ('proveedor_contacto' in campos) payload.proveedor_contacto = campos.proveedor_contacto || null;
+  if ('costo_unitario' in campos) payload.costo_unitario = (campos.costo_unitario === '' || campos.costo_unitario == null) ? null : Number(campos.costo_unitario);
+  if ('pedido_promedio' in campos) payload.pedido_promedio = (campos.pedido_promedio === '' || campos.pedido_promedio == null) ? null : Number(campos.pedido_promedio);
+  if ('notas' in campos) payload.notas = campos.notas || null;
+  if ('activo' in campos) payload.activo = !!campos.activo;
+
+  const { error } = await supabaseClient
+    .from('materias_primas')
+    .update(payload)
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error actualizando materia prima:', error);
+    throw error;
+  }
+
+  const mp = getMateriaPrimaPorId(id);
+  if (mp) {
+    if ('codigo' in campos) mp.codigo = payload.codigo;
+    if ('nombre' in campos) mp.nombre = payload.nombre;
+    if ('categoria' in campos) mp.categoria = payload.categoria;
+    if ('unidad_medida' in campos) mp.unidadMedida = payload.unidad_medida;
+    if ('stock_minimo' in campos) mp.stockMinimo = payload.stock_minimo;
+    if ('proveedor_nombre' in campos) mp.proveedorNombre = payload.proveedor_nombre;
+    if ('proveedor_contacto' in campos) mp.proveedorContacto = payload.proveedor_contacto;
+    if ('costo_unitario' in campos) mp.costoUnitario = payload.costo_unitario;
+    if ('pedido_promedio' in campos) mp.pedidoPromedio = payload.pedido_promedio;
+    if ('notas' in campos) mp.notas = payload.notas;
+    if ('activo' in campos) mp.activo = payload.activo;
+  }
+}
+
+function estadoStockMP(mp) {
+  if (mp.stock <= 0) return 'sin_stock';
+  if (mp.stock < mp.stockMinimo) return 'bajo';
+  return 'ok';
+}
+
+function getResumenStockMateriasPrimas() {
+  const materias = getMateriasPrimas();
+  let bajoStock = 0;
+  let sinStock = 0;
+
+  materias.forEach(mp => {
+    const estado = estadoStockMP(mp);
+    if (estado === 'sin_stock') sinStock++;
+    else if (estado === 'bajo') bajoStock++;
+  });
+
+  return { bajoStock, sinStock, total: materias.length };
+}
+
+// Registra entrada/salida/ajuste de stock vía RPC (atómico).
+// tipoMovimiento: 'entrada' | 'salida' | 'ajuste'
+async function registrarMovimientoMP({ materiaPrimaId, tipoMovimiento, cantidad, motivo, nota, fecha, permitirNegativo }) {
+  const { data, error } = await supabaseClient.rpc('registrar_movimiento_mp', {
+    p_materia_prima_id: materiaPrimaId,
+    p_tipo_movimiento: tipoMovimiento,
+    p_cantidad: cantidad,
+    p_motivo: motivo || null,
+    p_nota: nota || null,
+    p_fecha: fecha || new Date().toISOString().slice(0, 10),
+    p_permitir_negativo: !!permitirNegativo,
+  });
+
+  if (error) {
+    console.error('Error registrando movimiento de materia prima:', error);
+    throw error;
+  }
+
+  const resultado = Array.isArray(data) ? data[0] : data;
+
+  const mp = getMateriaPrimaPorId(materiaPrimaId);
+  if (mp && resultado) {
+    mp.stock = Number(resultado.stock_despues);
+  }
+
+  return resultado;
+}
+
+async function getMovimientosMP({ limite = 50, materiaPrimaId = null, tipoMovimiento = null, desde = null, hasta = null } = {}) {
+  let query = supabaseClient
+    .from('movimientos_materias_primas')
+    .select('id, materia_prima_id, tipo_movimiento, cantidad, stock_antes, stock_despues, motivo, nota, usuario_id, fecha, created_at')
+    .order('fecha', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(limite);
+
+  if (materiaPrimaId) query = query.eq('materia_prima_id', materiaPrimaId);
+  if (tipoMovimiento) query = query.eq('tipo_movimiento', tipoMovimiento);
+  if (desde) query = query.gte('fecha', desde);
+  if (hasta) query = query.lte('fecha', hasta);
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error cargando movimientos de materias primas:', error);
+    return [];
+  }
+
+  return data.map(m => ({
+    ...m,
+    materiaPrima: getMateriaPrimaPorId(m.materia_prima_id) || null,
+  }));
+}
+
 // --------- Métricas mensuales (basadas en movimientos_inventario) ---------
 
 const NOMBRES_MES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
